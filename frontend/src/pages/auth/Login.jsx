@@ -41,21 +41,33 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex bg-blue-600 relative">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-blue-600 relative overflow-x-hidden">
       
       {/* =========================================
-          LEFT PANEL (Desktop Only)
+          WELCOME PANEL (Visible on Mobile & Desktop)
       ========================================= */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center text-white p-12 relative overflow-hidden">
+      {/* ✅ CHANGED: Removed 'hidden', added w-full for mobile */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center text-white p-10 lg:p-12 relative overflow-hidden min-h-[35vh] lg:min-h-screen">
+        
+        {/* Background Decor (Optional) */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+           <div className="absolute top-[-20%] left-[-20%] w-80 h-80 bg-white rounded-full blur-3xl"></div>
+           <div className="absolute bottom-[-20%] right-[-20%] w-80 h-80 bg-indigo-400 rounded-full blur-3xl"></div>
+        </div>
+
         <div className="relative z-10 text-center">
-          <div className="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <svg className="w-10 h-10 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+          <div className="bg-white w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6 shadow-lg transform hover:scale-110 transition-transform duration-300">
+            <svg className="w-8 h-8 lg:w-10 lg:h-10 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a1 1 0 00.424.828L10 18.86l4.576-3.81a1 1 0 00.424-.828v-4.102l1.69-.724a1 1 0 00-.69-1.832l-7-3a1 1 0 00-.787 0l-7 3a1 1 0 00-.69 1.832 1 1 0 00.788.103z" />
             </svg>
           </div>
-          <h1 className="text-4xl font-bold mb-4">Welcome Back!</h1>
-          <p className="text-white/80 max-w-md mx-auto text-lg leading-relaxed">
-            Sign in to access your dashboard, track your progress, and continue your assessment journey.
+          
+          <h1 className="text-2xl lg:text-4xl font-bold mb-3 lg:mb-4">
+            Welcome Back! 🎓
+          </h1>
+
+          <p className="text-white/90 text-sm lg:text-lg max-w-sm lg:max-w-md mx-auto leading-relaxed font-medium">
+            Sign in to continue your learning journey, explore new assessments, and track your performance.
           </p>
         </div>
       </div>
@@ -66,19 +78,25 @@ export default function Login() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white rounded-t-3xl lg:rounded-l-3xl lg:rounded-tr-none mt-auto lg:mt-0 shadow-2xl relative z-0">
         <div className="w-full max-w-md">
           
-          {/* Mobile Header (Hidden on Desktop) */}
-          <div className="text-center lg:hidden mb-8">
-            <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
-              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a1 1 0 00.424.828L10 18.86l4.576-3.81a1 1 0 00.424-.828v-4.102l1.69-.724a1 1 0 00-.69-1.832l-7-3a1 1 0 00-.787 0l-7 3a1 1 0 00-.69 1.832 1 1 0 00.788.103z" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800">Alok Pathshala</h2>
-            <p className="text-gray-500">Sign in to your account</p>
-          </div>
+         {/* Mobile Top Header (Visible Only on Mobile) */}
+<div className="lg:hidden pt-6 pb-6 text-center">
+  <span className="inline-flex items-center px-3 py-1 mb-3 rounded-full text-xs font-semibold bg-blue-100 text-blue-600">
+    🔐 Login Here
+  </span>
+  <br></br>
+  <br></br>
 
-          <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center lg:text-left hidden lg:block">Login</h2>
-          <p className="text-gray-500 mb-8 text-center lg:text-left hidden lg:block">Please enter your details to sign in.</p>
+  <h2 className="text-xl font-bold text-gray-900">
+    One Step Closer to Success 🎯
+  </h2>
+
+  <p className="text-gray-500 text-sm mt-1 px-6">
+    Access your dashboard and continue your learning journey.
+  </p>
+</div>
+
+
+
 
           {/* Error Message */}
           {error && (
