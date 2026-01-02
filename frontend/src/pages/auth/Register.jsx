@@ -48,38 +48,53 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex bg-blue-600 relative">
-      {/* Cloud Background - Desktop Left Panel */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center text-white p-12 relative overflow-hidden">
-        <div className="relative z-10 text-center">
-          <div className="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <svg className="w-10 h-10 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a1 1 0 00.424.828L10 18.86l4.576-3.81a1 1 0 00.424-.828v-4.102l1.69-.724a1 1 0 00-.69-1.832l-7-3a1 1 0 00-.787 0l-7 3a1 1 0 00-.69 1.832 1 1 0 00.788.103z" />
-            </svg>
-          </div>
-          <h1 className="text-4xl font-bold mb-4">Welcome to Alok Pathshala</h1>
-          <p className="text-white/80 max-w-md mx-auto">
-            Join our smart assessment platform today and start your learning journey with advanced tools and analytics.
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col lg:flex-row bg-blue-600 relative overflow-x-hidden">
+
+  {/* =========================================
+      REGISTRATION PANEL (Mobile + Desktop)
+  ========================================= */}
+  <div className="w-full lg:w-1/2 flex flex-col justify-center items-center text-white p-10 lg:p-12 relative overflow-hidden min-h-[35vh] lg:min-h-screen">
+
+    {/* Background Decor */}
+    <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+      <div className="absolute top-[-20%] left-[-20%] w-80 h-80 bg-white rounded-full blur-3xl"></div>
+      <div className="absolute bottom-[-20%] right-[-20%] w-80 h-80 bg-indigo-400 rounded-full blur-3xl"></div>
+    </div>
+
+    <div className="relative z-10 text-center">
+      {/* Icon */}
+      <div className="bg-white w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6 shadow-lg transform hover:scale-110 transition-transform duration-300">
+        <svg className="w-8 h-8 lg:w-10 lg:h-10 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a1 1 0 00.424.828L10 18.86l4.576-3.81a1 1 0 00.424-.828v-4.102l1.69-.724a1 1 0 00-.69-1.832l-7-3a1 1 0 00-.787 0l-7 3a1 1 0 00-.69 1.832 1 1 0 00.788.103z" />
+        </svg>
       </div>
+
+      {/* Header */}
+      <h1 className="text-2xl lg:text-4xl font-bold mb-3 lg:mb-4">
+        Join Alok Pathshala 🎓
+      </h1>
+
+      {/* Subtext */}
+      <p className="text-white/90 text-sm lg:text-lg max-w-sm lg:max-w-md mx-auto leading-relaxed font-medium">
+        Create your account today to Unlock your full potential with practice assessments, and real-time tracking.The first step to your new future takes less than a minute.
+      </p>
+    </div>
+  </div>
 
       {/* Form - Right Panel / Mobile View */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white rounded-t-3xl lg:rounded-l-3xl lg:rounded-tr-none mt-auto lg:mt-0 shadow-2xl relative z-0">
         <div className="w-full max-w-md">
           
-          {/* Mobile Header */}
-          <div className="text-center lg:hidden mb-8">
-            <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
-              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a1 1 0 00.424.828L10 18.86l4.576-3.81a1 1 0 00.424-.828v-4.102l1.69-.724a1 1 0 00-.69-1.832l-7-3a1 1 0 00-.787 0l-7 3a1 1 0 00-.69 1.832 1 1 0 00.788.103z" />
-              </svg>
-            </div>
-            <h2 className="text-3xl font-bold text-gray-800">Alok Pathshala</h2>
-            <p className="text-gray-500">Create your student account</p>
-          </div>
+          {/* Registration Header (Centered for Desktop + Mobile) */}
+<div className="flex flex-col items-center justify-center pt-8 pb-8 text-center w-full">
+  <span className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-full 
+                   text-xs font-semibold tracking-wider uppercase 
+                   bg-green-50 text-green-600">
+    Create Your Account
+  </span>
 
-          <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center lg:text-left">Create your account</h2>
+  
+</div>
 
           {/* Error Message */}
           {error && (

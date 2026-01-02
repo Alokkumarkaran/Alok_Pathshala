@@ -63,7 +63,7 @@ export default function Login() {
           </div>
           
           <h1 className="text-2xl lg:text-4xl font-bold mb-3 lg:mb-4">
-            Welcome Back! 🎓
+           Welcome Back to Alok Pathshala 🎓
           </h1>
 
           <p className="text-white/90 text-sm lg:text-lg max-w-sm lg:max-w-md mx-auto leading-relaxed font-medium">
@@ -78,22 +78,16 @@ export default function Login() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white rounded-t-3xl lg:rounded-l-3xl lg:rounded-tr-none mt-auto lg:mt-0 shadow-2xl relative z-0">
         <div className="w-full max-w-md">
           
-         {/* Mobile Top Header (Visible Only on Mobile) */}
-<div className="lg:hidden pt-6 pb-6 text-center">
-  <span className="inline-flex items-center px-3 py-1 mb-3 rounded-full text-xs font-semibold bg-blue-100 text-blue-600">
+{/* Login Header (Centered for Desktop + Mobile) */}
+<div className="flex flex-col items-center justify-center pt-8 pb-8 text-center w-full">
+  <span className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-full 
+                   text-xs font-semibold tracking-wider uppercase 
+                   bg-blue-50 text-blue-600">
     🔐 Login Here
   </span>
-  <br></br>
-  <br></br>
-
-  <h2 className="text-xl font-bold text-gray-900">
-    One Step Closer to Success 🎯
-  </h2>
-
-  <p className="text-gray-500 text-sm mt-1 px-6">
-    Access your dashboard and continue your learning journey.
-  </p>
+  
 </div>
+
 
 
 
@@ -157,9 +151,13 @@ export default function Login() {
               </button>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="flex justify-end">
-              <a href="#" className="text-sm text-blue-600 hover:underline font-medium">Forgot Password?</a>
+            <div className="text-center mt-6">
+              <p className="text-gray-500">
+                Don't have an account?{" "}
+                <Link to="/register" className="text-blue-600 font-bold hover:underline">
+                  Sign Up
+                </Link>
+              </p>
             </div>
 
             {/* Action Buttons */}
@@ -184,14 +182,7 @@ export default function Login() {
             </div>
 
             {/* Footer */}
-            <div className="text-center mt-6">
-              <p className="text-gray-500">
-                Don't have an account?{" "}
-                <Link to="/register" className="text-blue-600 font-bold hover:underline">
-                  Sign Up
-                </Link>
-              </p>
-            </div>
+            
 
           </form>
         </div>
