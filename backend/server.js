@@ -12,7 +12,26 @@ import examRoutes from "./routes/exam.js";
 dotenv.config(); // This loads the variables from .env
 const app = express();
 
-app.use(cors({ origin: true, credentials: true }));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://alokpathshala.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // Postman / server-to-server
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed"));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 mongoose
