@@ -18,6 +18,7 @@ import BulkUpload from "./pages/admin/BulkUpload";
 import ResultAnalysis from "./pages/student/ResultAnalysis";
 import SLeaderboard from "./pages/student/SLeaderboard";
 import AvailableTests from "./pages/student/AvailableTests"; // Import the new page
+import AdminNotifications from "./pages/admin/AdminNotifications";
 
 
 export default function App() {
@@ -36,6 +37,14 @@ export default function App() {
             element={
               <ProtectedRoute role="admin">
                 <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/notifications"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminNotifications />
               </ProtectedRoute>
             }
           />

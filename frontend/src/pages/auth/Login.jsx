@@ -63,7 +63,7 @@ export default function Login() {
           </div>
           
           <h1 className="text-2xl lg:text-4xl font-bold mb-3 lg:mb-4">
-           Welcome Back to Alok Pathshala 🎓
+            Welcome Back! 🎓
           </h1>
 
           <p className="text-white/90 text-sm lg:text-lg max-w-sm lg:max-w-md mx-auto leading-relaxed font-medium">
@@ -150,7 +150,6 @@ export default function Login() {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-
             <div className="text-center mt-6">
               <p className="text-gray-500">
                 Don't have an account?{" "}
@@ -159,6 +158,8 @@ export default function Login() {
                 </Link>
               </p>
             </div>
+
+            
 
             {/* Action Buttons */}
             <div className="pt-2">
@@ -181,8 +182,27 @@ export default function Login() {
               </button>
             </div>
 
-            {/* Footer */}
-            
+{/* Auth Footer */}
+<footer className="
+  mt-8 lg:mt-12
+  w-full
+  text-center
+  text-xs sm:text-sm
+  text-gray-500
+">
+  <p className="font-medium">
+    Learn. Practice. Succeed. 🎓
+  </p>
+
+  <p className="mt-1">
+    © {new Date().getFullYear()}{" "}
+    <span className="font-semibold text-gray-700">
+      Alok Pathshala
+    </span>
+  </p>
+</footer>
+
+
 
           </form>
         </div>

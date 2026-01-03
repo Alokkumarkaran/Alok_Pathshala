@@ -6,7 +6,10 @@ import { useAuth } from "../../context/AuthContext";
 import { 
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area 
 } from "recharts";
-import { Trophy, Target, TrendingUp, Calendar, ArrowRight, PlayCircle, Activity } from "lucide-react";
+import { 
+  Trophy, Target, TrendingUp, Calendar, ArrowRight, PlayCircle, 
+  Activity, BarChart3, Sun, Moon, CloudSun, CloudMoon, Clock, CheckCircle2, XCircle, AlertCircle
+} from "lucide-react";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -14,7 +17,7 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [graphData, setGraphData] = useState([]);
 
-  // Derived Stats
+  // === LOGIC: Derived Stats ===
   const testsTaken = results.length;
   
   const avgScore = testsTaken > 0 
@@ -25,6 +28,29 @@ export default function StudentDashboard() {
     ? Math.max(...results.map(r => r.score)) 
     : 0;
 
+  // === LOGIC: IMPROVED Time Based Greeting ===
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    
+    // 5 AM to 11:59 AM -> Morning
+    if (hour >= 5 && hour < 12) {
+        return { text: "Good Morning", icon: Sun, color: "text-yellow-400" };
+    } 
+    // 12 PM to 4:59 PM -> Afternoon
+    if (hour >= 12 && hour < 17) {
+        return { text: "Good Afternoon", icon: CloudSun, color: "text-orange-400" };
+    } 
+    // 5 PM to 8:59 PM -> Evening
+    if (hour >= 17 && hour < 21) {
+        return { text: "Good Evening", icon: CloudMoon, color: "text-indigo-300" };
+    } 
+    // 9 PM to 4:59 AM -> Night
+    return { text: "Good Night", icon: Moon, color: "text-violet-200" };
+  };
+
+  const greeting = getTimeBasedGreeting();
+
+  // === LOGIC: Data Fetching ===
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -34,16 +60,15 @@ export default function StudentDashboard() {
           const data = resultsRes.data;
           setResults(data);
 
-          // Prepare Graph Data (Oldest to Newest)
           const chartData = [...data].reverse().map((r) => {
-             const total = r.testId?.totalMarks || 100;
-             const percentage = Math.round((r.score / total) * 100);
-             return {
-               name: r.testId?.title || "Test",
-               score: r.score,
-               percentage: percentage,
-               date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-             };
+              const total = r.testId?.totalMarks || 100;
+              const percentage = Math.round((r.score / total) * 100);
+              return {
+                name: r.testId?.title || "Test",
+                score: r.score,
+                percentage: percentage,
+                date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+              };
           });
           setGraphData(chartData);
         }
@@ -57,14 +82,20 @@ export default function StudentDashboard() {
     fetchDashboardData();
   }, [user]);
 
-  // Custom Tooltip for Graph
+  // Custom Tooltip
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-100 shadow-xl rounded-xl text-xs">
-          <p className="font-bold text-gray-800 mb-1">{payload[0].payload.name}</p>
-          <p className="text-gray-500 mb-1">{payload[0].payload.date}</p>
-          <p className="text-indigo-600 font-bold">Score: {payload[0].value}%</p>
+        <div className="bg-white/95 backdrop-blur-md p-3 border border-indigo-100 shadow-xl rounded-xl text-xs z-50">
+          <p className="font-bold text-slate-800 mb-1">{payload[0].payload.name}</p>
+          <div className="flex items-center gap-2 text-slate-500 mb-2">
+            <Calendar size={12} />
+            {payload[0].payload.date}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+            <p className="text-indigo-700 font-bold">Score: {payload[0].value}%</p>
+          </div>
         </div>
       );
     }
@@ -73,122 +104,200 @@ export default function StudentDashboard() {
 
   return (
     <StudentLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-7xl mx-auto px-0 sm:px-6 py-2 sm:py-8 space-y-4 sm:space-y-8">
         
         {/* === HERO HEADER === */}
-        <div className="flex flex-col lg:flex-row justify-between items-end gap-6 mb-10 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-               <span className="bg-indigo-50 text-indigo-600 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Student Dashboard</span>
+        <div className="relative overflow-hidden bg-gradient-to-r from-violet-700 via-indigo-600 to-purple-700 rounded-3xl shadow-2xl shadow-indigo-500/30 text-white p-6 sm:p-12 border border-white/10 isolate">
+            
+            {/* 1. Background Texture & Lighting Effects */}
+            <div className="absolute inset-0 -z-10 opacity-20 bg-[radial-gradient(#ffffff33_1px,transparent_1px)] [background-size:20px_20px]"></div>
+            <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 blur-3xl opacity-50">
+                <div className="aspect-[1155/678] w-[72.1875rem] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30"></div>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
-              Welcome back, <span className="text-indigo-600">{user?.name || "Student"}</span>! 👋
-            </h1>
-            <p className="text-gray-500 mt-3 text-lg max-w-xl">
-              Track your progress, analyze your results, and keep improving your skills.
-            </p>
-          </div>
-          
-          <Link to="/student/all-tests">
-            <button className="group flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-indigo-300 transition-all transform hover:-translate-y-1">
-              <PlayCircle size={22} className="fill-current" /> 
-              <span>Take a New Test</span>
-            </button>
-          </Link>
+            
+            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+                
+                {/* Left Side: Content */}
+                <div className="space-y-4 w-full max-w-2xl">
+                    {/* Dynamic Badge */}
+                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 shadow-sm transition-transform hover:scale-105 cursor-default">
+                        <greeting.icon size={16} className={`${greeting.color} drop-shadow-md`} />
+                        <span className="text-xs sm:text-sm font-bold tracking-wide uppercase text-white/90">{greeting.text}</span>
+                    </div>
+                    
+                    {/* Main Heading */}
+                    <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-none drop-shadow-lg">
+                        <span className="block text-indigo-200 text-xl sm:text-2xl font-semibold mb-2 tracking-normal">Welcome back,</span>
+                        {user?.name || "Student"}
+                    </h1>
+                    
+                    <p className="text-indigo-100/90 text-base sm:text-lg font-medium leading-relaxed max-w-lg">
+                        Analyze your past performance or challenge yourself with a new exam.
+                    </p>
+                </div>
+                
+                {/* Right Side: CTA Button */}
+                <div className="w-full md:w-auto flex-shrink-0">
+                     <Link to="/student/all-tests" className="block w-full">
+                        <button className="group relative w-full md:w-auto flex items-center justify-center gap-3 px-8 py-5 bg-white text-indigo-700 rounded-2xl font-bold text-lg shadow-[0_20px_50px_-12px_rgba(255,255,255,0.3)] hover:shadow-[0_20px_50px_-12px_rgba(255,255,255,0.5)] hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                            
+                            {/* Button Shine Effect */}
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-indigo-100/30 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                            
+                            <div className="relative flex items-center gap-3">
+                                <PlayCircle size={24} className="fill-indigo-600 text-indigo-50" /> 
+                                <span>Start New Test</span>
+                                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                            </div>
+                        </button>
+                    </Link>
+                    <p className="text-center md:text-right text-indigo-200/60 text-xs font-medium mt-3">
+                        Ready to improve your score?
+                    </p>
+                </div>
+            </div>
         </div>
 
         {/* === STATS CARDS === */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          {/* Card 1 */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-indigo-100 transition-colors group">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:scale-110 transition-transform">
-                <Trophy size={24} />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          
+          {/* Card 1: Completed Tests */}
+          <div className="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-white p-6 rounded-3xl border border-blue-100 shadow-sm hover:shadow-lg hover:border-blue-300 hover:-translate-y-1 transition-all duration-300">
+            <div className="absolute right-0 top-0 w-32 h-32 bg-blue-100/50 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-blue-200/50 transition-colors"></div>
+            
+            <div className="relative z-10 flex justify-between items-start">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="p-1.5 bg-blue-100 text-blue-600 rounded-lg">
+                    <Trophy size={16} strokeWidth={3} />
+                  </span>
+                  <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Completed</p>
+                </div>
+                <h3 className="text-4xl sm:text-5xl font-black text-slate-800 tracking-tight">
+                  {testsTaken}
+                </h3>
+                <p className="text-sm text-slate-500 font-medium mt-1">Total Exams</p>
               </div>
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total</span>
+              
+              {/* Decorative Icon on Right */}
+              <div className="text-blue-200 group-hover:text-blue-300 group-hover:scale-110 transition-all duration-500 transform rotate-12">
+                <Trophy size={48} />
+              </div>
             </div>
-            <h3 className="text-3xl font-black text-gray-900 mb-1">{testsTaken}</h3>
-            <p className="text-sm text-gray-500 font-medium">Tests Completed</p>
           </div>
 
-          {/* Card 2 */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-purple-100 transition-colors group">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-purple-50 text-purple-600 rounded-xl group-hover:scale-110 transition-transform">
-                <Target size={24} />
+          {/* Card 2: Average Score */}
+          <div className="group relative overflow-hidden bg-gradient-to-br from-violet-50 to-white p-6 rounded-3xl border border-violet-100 shadow-sm hover:shadow-lg hover:border-violet-300 hover:-translate-y-1 transition-all duration-300">
+            <div className="absolute right-0 top-0 w-32 h-32 bg-violet-100/50 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-violet-200/50 transition-colors"></div>
+            
+            <div className="relative z-10 flex justify-between items-start">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="p-1.5 bg-violet-100 text-violet-600 rounded-lg">
+                    <Target size={16} strokeWidth={3} />
+                  </span>
+                  <p className="text-xs font-bold text-violet-600 uppercase tracking-wider">Average</p>
+                </div>
+                <h3 className="text-4xl sm:text-5xl font-black text-slate-800 tracking-tight">
+                  {avgScore}<span className="text-2xl sm:text-3xl text-slate-400">%</span>
+                </h3>
+                <p className="text-sm text-slate-500 font-medium mt-1">Overall Performance</p>
               </div>
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Average</span>
+              
+              <div className="text-violet-200 group-hover:text-violet-300 group-hover:scale-110 transition-all duration-500 transform rotate-12">
+                <Target size={48} />
+              </div>
             </div>
-            <h3 className="text-3xl font-black text-gray-900 mb-1">{avgScore}%</h3>
-            <p className="text-sm text-gray-500 font-medium">Overall Score</p>
           </div>
 
-          {/* Card 3 */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-green-100 transition-colors group">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-green-50 text-green-600 rounded-xl group-hover:scale-110 transition-transform">
-                <TrendingUp size={24} />
+          {/* Card 3: Best Score */}
+          <div className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 to-white p-6 rounded-3xl border border-emerald-100 shadow-sm hover:shadow-lg hover:border-emerald-300 hover:-translate-y-1 transition-all duration-300">
+            <div className="absolute right-0 top-0 w-32 h-32 bg-emerald-100/50 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-emerald-200/50 transition-colors"></div>
+            
+            <div className="relative z-10 flex justify-between items-start">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg">
+                    <TrendingUp size={16} strokeWidth={3} />
+                  </span>
+                  <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Best Score</p>
+                </div>
+                <h3 className="text-4xl sm:text-5xl font-black text-slate-800 tracking-tight">
+                  {highestScore}
+                </h3>
+                <p className="text-sm text-slate-500 font-medium mt-1">Personal Record</p>
               </div>
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Best</span>
+              
+              <div className="text-emerald-200 group-hover:text-emerald-300 group-hover:scale-110 transition-all duration-500 transform rotate-12">
+                <TrendingUp size={48} />
+              </div>
             </div>
-            <h3 className="text-3xl font-black text-gray-900 mb-1">{highestScore}</h3>
-            <p className="text-sm text-gray-500 font-medium">Highest Marks</p>
           </div>
+
         </div>
 
         {/* === MAIN CONTENT GRID === */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           
           {/* === LEFT: PERFORMANCE GRAPH (2/3) === */}
-          <div className="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col">
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <Activity className="text-indigo-600" size={24} /> Performance Trend
-              </h3>
-              <select className="bg-gray-50 border border-gray-200 text-gray-600 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-100">
-                <option>Last 10 Tests</option>
-              </select>
+          <div className="lg:col-span-2 bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
+            
+            {/* Header has padding */}
+            <div className="p-5 sm:p-8 flex flex-row justify-between items-center pb-2">
+              <div className="flex items-center gap-2 sm:gap-3">
+                 <Activity className="text-indigo-600" size={20} />
+                 <h3 className="text-lg sm:text-xl font-bold text-slate-800">Performance</h3>
+              </div>
+              <div className="bg-slate-50 px-3 py-1 rounded-lg text-xs font-medium text-slate-500 border border-slate-100">
+                Last 10 Tests
+              </div>
             </div>
             
-            <div className="h-[300px] w-full flex-1">
+            {/* Chart Area */}
+            <div className="h-[280px] sm:h-[350px] w-full">
                {graphData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={graphData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={graphData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis 
                         dataKey="date" 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{fill: '#9ca3af', fontSize: 12, fontWeight: 500}} 
+                        tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 600}} 
                         dy={10}
+                        interval="preserveStartEnd"
+                        padding={{ left: 20, right: 20 }} 
                       />
                       <YAxis 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{fill: '#9ca3af', fontSize: 12, fontWeight: 500}} 
+                        tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 600}} 
+                        width={30} 
                       />
-                      <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#4f46e5', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                      <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#6366f1', strokeWidth: 2, strokeDasharray: '5 5' }} />
                       <Area 
                         type="monotone" 
                         dataKey="percentage" 
-                        stroke="#4f46e5" 
+                        stroke="#6366f1" 
                         strokeWidth={3}
                         fillOpacity={1} 
                         fill="url(#colorScore)" 
-                        activeDot={{ r: 6, strokeWidth: 0, fill: '#4338ca' }}
+                        activeDot={{ r: 6, strokeWidth: 3, stroke: '#fff', fill: '#6366f1' }}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
                ) : (
-                 <div className="h-full flex flex-col items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
-                   <p className="font-medium">No performance data yet.</p>
-                   <span className="text-xs mt-1 text-gray-400">Complete a test to see your analytics.</span>
+                 <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                   <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                      <BarChart3 className="text-slate-300" size={24} />
+                   </div>
+                   <p className="font-semibold text-slate-600 text-sm">No performance data yet</p>
                  </div>
                )}
             </div>
@@ -196,64 +305,96 @@ export default function StudentDashboard() {
 
           {/* === RIGHT: RECENT HISTORY (1/3) === */}
           <div className="flex flex-col h-full">
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full min-h-[400px]">
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                   <Calendar className="text-indigo-600" size={20} /> Recent Activity
-                </h3>
+            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden flex flex-col h-full min-h-[400px]">
+              
+              {/* Header */}
+              <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-white z-10 relative">
+                <div>
+                  <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                     <Clock className="text-indigo-600" size={20} /> Recent Activity
+                  </h3>
+                  <p className="text-xs text-slate-400 font-medium mt-1">Your latest exam attempts</p>
+                </div>
+                
                 {results.length > 0 && (
-                  <Link to="/student/results" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors">
-                    View All <ArrowRight size={14} />
+                  <Link to="/student/results" className="group flex items-center gap-1 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-full transition-all">
+                    View All <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                   </Link>
                 )}
               </div>
 
-              <div className="overflow-y-auto flex-1 p-4 custom-scrollbar">
+              {/* Scrollable List */}
+              <div className="overflow-y-auto flex-1 p-4 custom-scrollbar bg-slate-50/50 space-y-3">
                 {results.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-gray-400 px-6">
-                     <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
-                       <Calendar size={24} className="opacity-50" />
-                     </div>
-                     <p className="text-sm font-medium text-gray-500">No exams attempted yet.</p>
-                     <Link to="/student/all-tests" className="text-xs font-bold text-indigo-600 mt-2 hover:underline">Start your first test</Link>
+                  // Empty State
+                  <div className="h-full flex flex-col items-center justify-center text-center px-6">
+                      <div className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center shadow-sm mb-4">
+                        <AlertCircle size={32} className="text-slate-300" />
+                      </div>
+                      <h4 className="text-slate-900 font-bold mb-1">No Activity Yet</h4>
+                      <p className="text-slate-500 text-sm mb-4">You haven't taken any tests yet.</p>
+                      <Link to="/student/all-tests" className="text-sm font-bold text-white bg-indigo-600 px-6 py-2 rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all">
+                        Start Your First Test
+                      </Link>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {results.slice(0, 5).map((r) => {
-                       const isPassed = r.score >= r.testId?.passingMarks;
-                       return (
-                        <Link to={`/student/result/${r._id}`} key={r._id} className="block group">
-                          <div className="p-4 bg-white border border-gray-100 rounded-2xl hover:border-indigo-200 hover:shadow-md transition-all duration-300 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm ${
-                                isPassed ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
-                              }`}>
-                                {r.score}
-                              </div>
-                              <div className="min-w-0">
-                                <h4 className="text-sm font-bold text-gray-900 truncate max-w-[140px] group-hover:text-indigo-600 transition-colors">
-                                  {r.testId?.title || "Deleted Test"}
-                                </h4>
-                                <p className="text-[11px] font-medium text-gray-400 mt-0.5">
-                                  {new Date(r.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                </p>
-                              </div>
+                  // List Items
+                  results.slice(0, 5).map((r) => {
+                    const isPassed = r.score >= r.testId?.passingMarks;
+                    return (
+                      <Link to={`/student/result/${r._id}`} key={r._id} className="block group relative">
+                        <div className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-200 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between gap-4">
+                          
+                          {/* Left: Icon & Info */}
+                          <div className="flex items-center gap-4 min-w-0 flex-1">
+                            {/* Status Icon Box */}
+                            <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center border ${
+                              isPassed 
+                                ? "bg-emerald-50 border-emerald-100 text-emerald-600" 
+                                : "bg-red-50 border-red-100 text-red-500"
+                            }`}>
+                              {isPassed ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
                             </div>
-                            <div className="text-gray-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all">
-                              <ArrowRight size={18} />
+
+                            {/* Text Details */}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                   isPassed ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                                 }`}>
+                                   {isPassed ? "Passed" : "Failed"}
+                                 </span>
+                                 <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                                   <Calendar size={10} />
+                                   {new Date(r.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                 </span>
+                              </div>
+                              <h4 className="text-sm sm:text-base font-bold text-slate-800 truncate group-hover:text-indigo-600 transition-colors">
+                                {r.testId?.title || "Unknown Test"}
+                              </h4>
                             </div>
                           </div>
-                        </Link>
-                       );
-                    })}
-                  </div>
+
+                          {/* Right: Score */}
+                          <div className="text-right pl-2 border-l border-slate-100">
+                              <span className="block text-xs font-semibold text-slate-400 uppercase">Score</span>
+                              <span className={`text-xl font-black ${
+                                  isPassed ? "text-emerald-600" : "text-red-600"
+                              }`}>
+                                  {r.score}
+                              </span>
+                          </div>
+                          
+                        </div>
+                      </Link>
+                    );
+                  })
                 )}
               </div>
             </div>
           </div>
 
         </div>
-
       </div>
     </StudentLayout>
   );

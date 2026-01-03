@@ -1,20 +1,52 @@
-
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
-import { generateToken } from "../utils/generateToken.js";
+import Notification from "../models/Notification.js"; // 👈 IMPORT THIS
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
+
 const router = express.Router();
 
+// REGISTER ROUTE
+router.post("/register", async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+    
+    // Check if user exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+        return res.status(400).json({ message: "User already exists" });
+    }
 
-router.post("/register", async(req,res)=>{
-  const {name,email,password,role} = req.body;
-  const hashed = await bcrypt.hash(password,10);
-  const user = await User.create({name,email,password:hashed,role});
-  res.json(user);
+    const hashed = await bcrypt.hash(password, 10);
+    const assignedRole = role ? role.toLowerCase() : "student";
+
+    const user = await User.create({ name, email, password: hashed, role: assignedRole });
+
+    // 👇 NOTIFICATION TRIGGER (Added directly in the route)
+    if (assignedRole === 'student') {
+        try {
+            console.log(`[TRIGGER] New Student Notification for: ${user.name}`);
+            await Notification.create({
+                type: 'student',
+                title: 'New Student Registered',
+                message: `${user.name} has joined Alok Pathshala.`,
+                link: '/admin/students',
+                isRead: false
+            });
+        } catch (error) {
+            console.error("Notification Error:", error);
+        }
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Registration failed" });
+  }
 });
 
+// LOGIN ROUTE
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -53,7 +85,6 @@ router.post("/login", async (req, res) => {
 
 router.get("/students", async (req, res) => {
   try {
-    // Find all users with role 'student', hide password, sort by newest
     const students = await User.find({ role: "student" })
       .select("-password") 
       .sort({ createdAt: -1 });
@@ -73,22 +104,16 @@ router.delete("/user/:id", protect, adminOnly, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Prevent deleting yourself (Admin)
     if (user._id.toString() === req.user._id.toString()) {
       return res.status(400).json({ message: "You cannot delete your own admin account." });
     }
 
     await User.findByIdAndDelete(req.params.id);
-    
-    // Optional: Also delete their exam results if you want to clean up DB
-    // await Result.deleteMany({ studentId: req.params.id }); 
-
     res.json({ message: "User deleted successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 
 export default router;

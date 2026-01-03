@@ -222,6 +222,25 @@ export default function Register() {
                 </button>
               </Link>
             </div>
+            {/* Auth Footer */}
+<footer className="
+  mt-8 lg:mt-12
+  w-full
+  text-center
+  text-xs sm:text-sm
+  text-gray-500
+">
+  <p className="font-medium">
+    Learn. Practice. Succeed. 🎓
+  </p>
+
+  <p className="mt-1">
+    © {new Date().getFullYear()}{" "}
+    <span className="font-semibold text-gray-700">
+      Alok Pathshala
+    </span>
+  </p>
+</footer>
           </form>
         </div>
       </div>

@@ -1,181 +1,270 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import api from "../../api/axios";
 import StudentLayout from "../../layouts/StudentLayout";
-import { Medal, Crown, User, Trophy, Star } from "lucide-react";
+import { 
+  Crown, 
+  Medal, 
+  Search, 
+  Trophy, 
+  ArrowUpRight, 
+  Calendar,
+  Filter,
+  User
+} from "lucide-react";
 
 export default function Leaderboard() {
   const [leaders, setLeaders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [timeFilter, setTimeFilter] = useState("all");
 
   useEffect(() => {
-    // Ensure this endpoint exists in your backend
-    api.get("/exam/leaderboard/global")
-      .then((res) => setLeaders(res.data))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    const fetchLeaders = async () => {
+      try {
+        const res = await api.get("/exam/leaderboard/global");
+        setLeaders(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLeaders();
   }, []);
 
-  // Helper to generate initials
-  const getInitials = (name) => {
-    return name ? name.charAt(0).toUpperCase() : "?";
-  };
+  // --- FILTERING & SEARCHING ---
+  const filteredLeaders = useMemo(() => {
+    return leaders.filter(l => 
+      l.studentId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      l.testId?.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [leaders, searchTerm]);
 
-  // Helper to get random soft background color for avatar
-  const getAvatarColor = (index) => {
-    const colors = ["bg-blue-100 text-blue-600", "bg-purple-100 text-purple-600", "bg-pink-100 text-pink-600", "bg-green-100 text-green-600", "bg-orange-100 text-orange-600"];
-    return colors[index % colors.length];
+  const topThree = filteredLeaders.slice(0, 3);
+  const restOfList = filteredLeaders.slice(3);
+
+  // --- HELPERS ---
+  const getInitials = (name) => name ? name.charAt(0).toUpperCase() : "?";
+  
+  // Professional Gradients for Ranks
+  const getRankBadge = (index) => {
+    switch(index) {
+      case 0: return "bg-gradient-to-br from-yellow-300 to-yellow-500 text-white shadow-yellow-200";
+      case 1: return "bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-slate-200";
+      case 2: return "bg-gradient-to-br from-orange-300 to-orange-500 text-white shadow-orange-200";
+      default: return "bg-gray-100 text-gray-500";
+    }
   };
 
   return (
     <StudentLayout>
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="min-h-screen bg-gray-50/30 pb-12">
         
-        {/* === HEADER === */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center p-3 bg-yellow-100 rounded-full mb-4 ring-4 ring-yellow-50">
-            <Crown className="text-yellow-600" size={32} strokeWidth={2.5} />
-          </div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">
-            Hall of Fame
-          </h1>
-          <p className="text-gray-500 text-lg max-w-lg mx-auto">
-            Celebrating the top achievers across all assessments. Keep learning to see your name here!
-          </p>
-        </div>
-
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
-            <p className="text-gray-500 font-medium">Loading rankings...</p>
-          </div>
-        ) : leaders.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
-              <Trophy size={40} />
+        {/* === HEADER SECTION === */}
+        <div className="bg-white border-b border-gray-200 pt-4 pb-12 px-4 sm:px-8">
+          <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                <Trophy className="text-indigo-600" size={32} />
+                Global Leaderboard
+              </h1>
+              <p className="text-gray-500 mt-2 text-lg">
+                Recognizing top performers across the platform.
+              </p>
             </div>
-            <h3 className="text-xl font-bold text-gray-800">No Champions Yet</h3>
-            <p className="text-gray-500">Be the first to take an exam and top the leaderboard!</p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-
-            {/* === TOP 3 PODIUM (Desktop Only) === */}
-            {leaders.length >= 3 && (
-              <div className="hidden md:flex justify-center items-end gap-6 mb-12">
-                
-                {/* 2nd Place */}
-                <div className="flex flex-col items-center animate-in slide-in-from-bottom-8 duration-700 delay-100">
-                  <div className="w-20 h-20 rounded-full border-4 border-gray-200 bg-white shadow-lg flex items-center justify-center text-2xl font-bold text-gray-600 relative z-10 mb-[-10px]">
-                    {getInitials(leaders[1]?.studentId?.name)}
-                    <div className="absolute -top-3 bg-gray-200 text-gray-700 text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">2nd</div>
-                  </div>
-                  <div className="bg-gradient-to-b from-gray-100 to-white w-32 h-40 rounded-t-2xl border border-gray-200 flex flex-col items-center justify-start pt-6 shadow-sm">
-                    <p className="font-bold text-gray-800 truncate w-full text-center px-2">{leaders[1]?.studentId?.name}</p>
-                    <p className="text-xs text-gray-500 mb-2 truncate max-w-[90%]">{leaders[1]?.testId?.title}</p>
-                    <span className="font-black text-2xl text-gray-700">{leaders[1]?.score}</span>
-                  </div>
-                </div>
-
-                {/* 1st Place */}
-                <div className="flex flex-col items-center animate-in slide-in-from-bottom-8 duration-700">
-                  <Crown className="text-yellow-400 mb-2 drop-shadow-sm" size={40} fill="currentColor" />
-                  <div className="w-24 h-24 rounded-full border-4 border-yellow-400 bg-white shadow-xl flex items-center justify-center text-3xl font-bold text-yellow-600 relative z-10 mb-[-10px]">
-                    {getInitials(leaders[0]?.studentId?.name)}
-                    <div className="absolute -top-3 bg-yellow-400 text-white text-xs font-bold px-3 py-0.5 rounded-full shadow-md">1st</div>
-                  </div>
-                  <div className="bg-gradient-to-b from-yellow-50 to-white w-40 h-52 rounded-t-2xl border border-yellow-200 flex flex-col items-center justify-start pt-8 shadow-md relative overflow-hidden">
-                    <div className="absolute inset-0 bg-yellow-400 opacity-5"></div>
-                    <p className="font-bold text-gray-900 text-lg truncate w-full text-center px-2">{leaders[0]?.studentId?.name}</p>
-                    <p className="text-xs text-gray-500 mb-2 truncate max-w-[90%]">{leaders[0]?.testId?.title}</p>
-                    <span className="font-black text-4xl text-yellow-600">{leaders[0]?.score}</span>
-                  </div>
-                </div>
-
-                {/* 3rd Place */}
-                <div className="flex flex-col items-center animate-in slide-in-from-bottom-8 duration-700 delay-200">
-                  <div className="w-20 h-20 rounded-full border-4 border-orange-200 bg-white shadow-lg flex items-center justify-center text-2xl font-bold text-orange-600 relative z-10 mb-[-10px]">
-                    {getInitials(leaders[2]?.studentId?.name)}
-                    <div className="absolute -top-3 bg-orange-200 text-orange-800 text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">3rd</div>
-                  </div>
-                  <div className="bg-gradient-to-b from-orange-50 to-white w-32 h-32 rounded-t-2xl border border-orange-200 flex flex-col items-center justify-start pt-6 shadow-sm">
-                    <p className="font-bold text-gray-800 truncate w-full text-center px-2">{leaders[2]?.studentId?.name}</p>
-                    <p className="text-xs text-gray-500 mb-2 truncate max-w-[90%]">{leaders[2]?.testId?.title}</p>
-                    <span className="font-black text-2xl text-orange-700">{leaders[2]?.score}</span>
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* === FULL LIST === */}
-            <div className="bg-white rounded-3xl shadow-xl shadow-gray-100 border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
-                <h3 className="font-bold text-gray-800">All Top Performers</h3>
-                <span className="text-xs font-semibold text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
-                  Top {leaders.length}
-                </span>
+            
+            {/* Controls */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              {/* Search */}
+              <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                <input 
+                  type="text" 
+                  placeholder="Search student..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                />
               </div>
               
-              <div className="divide-y divide-gray-50">
-                {leaders.map((entry, index) => {
-                  let rankStyles = "bg-gray-100 text-gray-500"; // Default
-                  let icon = null;
-
-                  if (index === 0) {
-                    rankStyles = "bg-yellow-100 text-yellow-700 ring-2 ring-yellow-50";
-                    icon = <Crown size={14} fill="currentColor" />;
-                  } else if (index === 1) {
-                    rankStyles = "bg-gray-200 text-gray-700 ring-2 ring-gray-50";
-                  } else if (index === 2) {
-                    rankStyles = "bg-orange-100 text-orange-800 ring-2 ring-orange-50";
-                  }
-
-                  return (
-                    <div 
-                      key={entry._id} 
-                      className="flex items-center p-4 sm:p-5 hover:bg-gray-50 transition-colors group"
-                    >
-                      {/* Rank Number */}
-                      <div className={`flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm sm:text-lg mr-4 sm:mr-6 ${rankStyles}`}>
-                        {index + 1}
-                      </div>
-
-                      {/* Avatar & Name */}
-                      <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-4">
-                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-sm sm:text-lg font-bold ${getAvatarColor(index)}`}>
-                          {getInitials(entry.studentId?.name)}
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="font-bold text-gray-900 truncate flex items-center gap-2 group-hover:text-indigo-600 transition-colors">
-                            {entry.studentId?.name || "Unknown User"}
-                            {icon}
-                          </h4>
-                          <p className="text-xs sm:text-sm text-gray-500 truncate flex items-center gap-1">
-                            <span className="hidden sm:inline">Excellence in</span> 
-                            <span className="font-medium text-gray-600">{entry.testId?.title}</span>
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Score Badge */}
-                      <div className="text-right pl-4">
-                        <div className="flex flex-col items-end">
-                          <span className="text-xl sm:text-2xl font-black text-gray-900 group-hover:text-indigo-600 transition-colors">
-                            {entry.score}
-                          </span>
-                          <span className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-2 py-0.5 rounded-full group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors">
-                            Score
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              {/* Filter */}
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                  <Calendar size={18} />
+                </div>
+                <select 
+                  value={timeFilter}
+                  onChange={(e) => setTimeFilter(e.target.value)}
+                  className="w-full sm:w-40 pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl font-medium text-gray-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none cursor-pointer hover:bg-gray-50 transition-colors"
+                >
+                  <option value="all">All Time</option>
+                  <option value="month">This Month</option>
+                  <option value="week">This Week</option>
+                </select>
+                <Filter size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
             </div>
-
           </div>
-        )}
+        </div>
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-6">
+          
+          {/* === LOADING SKELETON === */}
+          {loading && (
+            <div className="animate-pulse space-y-4">
+              <div className="flex gap-4 justify-center items-end h-48 mb-8">
+                <div className="w-1/3 h-32 bg-gray-200 rounded-t-xl"></div>
+                <div className="w-1/3 h-48 bg-gray-200 rounded-t-xl"></div>
+                <div className="w-1/3 h-24 bg-gray-200 rounded-t-xl"></div>
+              </div>
+              {[1,2,3,4,5].map(i => (
+                <div key={i} className="h-16 bg-white rounded-xl w-full"></div>
+              ))}
+            </div>
+          )}
+
+          {!loading && leaders.length > 0 && (
+            <>
+              {/* === TOP 3 PODIUM (Responsive Grid) === */}
+              {/* Only show podium if no search active, or search matches top 3 */}
+              {!searchTerm && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 items-end">
+                  
+                  {/* Rank 2 */}
+                  <div className="order-2 md:order-1 relative bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-shadow">
+                    <div className="absolute -top-4 bg-slate-100 text-slate-600 font-bold px-3 py-1 rounded-full border border-white shadow-sm text-sm">
+                      #2 Silver
+                    </div>
+                    <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xl font-bold mb-3 ring-4 ring-white">
+                      {getInitials(leaders[1]?.studentId?.name)}
+                    </div>
+                    <h3 className="font-bold text-gray-900 text-lg truncate w-full text-center">{leaders[1]?.studentId?.name}</h3>
+                    <p className="text-slate-500 text-sm mb-4">{leaders[1]?.testId?.title}</p>
+                    <div className="w-full bg-slate-50 rounded-lg py-2 text-center border border-slate-100">
+                      <span className="text-xl font-black text-slate-700">{leaders[1]?.score}</span>
+                      <span className="text-xs text-slate-400 ml-1">pts</span>
+                    </div>
+                  </div>
+
+                  {/* Rank 1 */}
+                  <div className="order-1 md:order-2 relative bg-white rounded-2xl p-8 shadow-xl shadow-yellow-500/10 border border-yellow-100 flex flex-col items-center z-10 scale-105 transform">
+                    <div className="absolute -top-6">
+                      <Crown className="text-yellow-400 drop-shadow-sm" size={48} fill="currentColor" />
+                    </div>
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-100 to-yellow-50 text-yellow-600 flex items-center justify-center text-3xl font-bold mb-4 ring-4 ring-white shadow-lg">
+                      {getInitials(leaders[0]?.studentId?.name)}
+                    </div>
+                    <h3 className="font-bold text-gray-900 text-xl truncate w-full text-center">{leaders[0]?.studentId?.name}</h3>
+                    <p className="text-yellow-600/70 text-sm font-semibold mb-4 tracking-wide uppercase">Champion</p>
+                    <div className="w-full bg-yellow-50 rounded-xl py-3 text-center border border-yellow-100">
+                      <span className="text-3xl font-black text-yellow-600">{leaders[0]?.score}</span>
+                      <span className="text-sm text-yellow-600/60 ml-1 font-bold">pts</span>
+                    </div>
+                  </div>
+
+                  {/* Rank 3 */}
+                  <div className="order-3 md:order-3 relative bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-shadow">
+                     <div className="absolute -top-4 bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full border border-white shadow-sm text-sm">
+                      #3 Bronze
+                    </div>
+                    <div className="w-16 h-16 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-xl font-bold mb-3 ring-4 ring-white">
+                      {getInitials(leaders[2]?.studentId?.name)}
+                    </div>
+                    <h3 className="font-bold text-gray-900 text-lg truncate w-full text-center">{leaders[2]?.studentId?.name}</h3>
+                    <p className="text-orange-500/70 text-sm mb-4">{leaders[2]?.testId?.title}</p>
+                    <div className="w-full bg-orange-50 rounded-lg py-2 text-center border border-orange-100">
+                      <span className="text-xl font-black text-orange-700">{leaders[2]?.score}</span>
+                      <span className="text-xs text-orange-400 ml-1">pts</span>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* === MAIN LIST === */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-gray-50/50 border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500 font-semibold">
+                        <th className="px-6 py-4 w-20 text-center">Rank</th>
+                        <th className="px-6 py-4">Student</th>
+                        <th className="px-6 py-4">Assessment</th>
+                        <th className="px-6 py-4 text-right">Score</th>
+                        <th className="px-6 py-4 text-right hidden sm:table-cell">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {(searchTerm ? filteredLeaders : restOfList).map((entry, index) => {
+                        // Calculate actual rank based on if we are showing full list or just rest
+                        const actualRank = searchTerm ? index + 1 : index + 4;
+                        
+                        return (
+                          <tr key={entry._id} className="hover:bg-indigo-50/30 transition-colors group">
+                            <td className="px-6 py-4 text-center">
+                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                                actualRank <= 3 ? getRankBadge(actualRank-1) : "text-gray-500 bg-gray-100"
+                              }`}>
+                                {actualRank}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">
+                                  {getInitials(entry.studentId?.name)}
+                                </div>
+                                <div>
+                                  <div className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                                    {entry.studentId?.name}
+                                  </div>
+                                  <div className="text-xs text-gray-400 sm:hidden">{entry.testId?.title}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-600 font-medium hidden sm:table-cell">
+                              {entry.testId?.title}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="inline-flex flex-col items-end">
+                                <span className="font-bold text-gray-900 tabular-nums">{entry.score}</span>
+                                <span className="text-[10px] text-green-600 flex items-center font-medium bg-green-50 px-1.5 rounded">
+                                  <ArrowUpRight size={10} className="mr-0.5" /> Top 5%
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right text-sm text-gray-400 tabular-nums hidden sm:table-cell">
+                              {new Date().toLocaleDateString()} {/* Replace with actual date if available */}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {/* Empty Search Result */}
+                {filteredLeaders.length === 0 && (
+                  <div className="py-12 text-center">
+                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Search className="text-gray-400" size={24} />
+                    </div>
+                    <h3 className="text-gray-900 font-medium">No students found</h3>
+                    <p className="text-gray-500 text-sm">Try adjusting your search query.</p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* === EMPTY STATE (No Data) === */}
+          {!loading && leaders.length === 0 && (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
+              <Trophy size={48} className="text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-gray-900">Leaderboard Empty</h3>
+              <p className="text-gray-500">Be the first to complete an assessment and take the crown!</p>
+            </div>
+          )}
+        </div>
       </div>
     </StudentLayout>
   );

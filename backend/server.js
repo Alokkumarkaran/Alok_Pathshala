@@ -8,9 +8,11 @@ import authRoutes from "./routes/auth.js";
 import testRoutes from "./routes/test.js";
 import User from "./models/User.js";
 import examRoutes from "./routes/exam.js";
+import notificationRoutes from './routes/notificationRoutes.js';
 
 dotenv.config(); // This loads the variables from .env
 const app = express();
+
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -71,6 +73,7 @@ mongoose
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
 app.use("/api/exam", examRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.listen(5000, () =>
   console.log("🚀 Server running on http://localhost:5000")

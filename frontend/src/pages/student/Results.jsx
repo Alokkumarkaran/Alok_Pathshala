@@ -1,23 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import StudentLayout from "../../layouts/StudentLayout";
-import { 
-  FileText, 
-  Calendar, 
-  CheckCircle, 
-  XCircle, 
-  Trophy, 
+import {
+  Calendar,
+  CheckCircle,
+  XCircle,
+  Trophy,
   TrendingUp,
   ArrowRight,
-  BarChart2
+  BarChart2,
+  Search,
+  Filter,
+  Clock,
+  Target
 } from "lucide-react";
 
 export default function Results() {
   const { user } = useAuth();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all"); // all, passed, failed
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (user?._id) {
@@ -33,173 +38,277 @@ export default function Results() {
     }
   }, [user]);
 
-  // Helper for date formatting
+  // --- DERIVED STATS & FILTERING ---
+  const filteredResults = useMemo(() => {
+    return results.filter((r) => {
+      const testTitle = r.testId?.title?.toLowerCase() || "";
+      const matchesSearch = testTitle.includes(search.toLowerCase());
+      
+      const test = r.testId || { passingMarks: 0 };
+      const isPassed = r.score >= test.passingMarks;
+      
+      if (filter === "passed") return matchesSearch && isPassed;
+      if (filter === "failed") return matchesSearch && !isPassed;
+      return matchesSearch;
+    });
+  }, [results, filter, search]);
+
+  const stats = useMemo(() => {
+    if (!results.length) return null;
+    const totalTests = results.length;
+    const passedTests = results.filter(r => r.score >= (r.testId?.passingMarks || 0)).length;
+    
+    // Calculate Average Percentage
+    const totalPercentage = results.reduce((acc, curr) => {
+      const max = curr.testId?.totalMarks || 100;
+      return acc + ((curr.score / max) * 100);
+    }, 0);
+    
+    return {
+      total: totalTests,
+      passed: passedTests,
+      failed: totalTests - passedTests,
+      avgScore: Math.round(totalPercentage / totalTests),
+      passRate: Math.round((passedTests / totalTests) * 100)
+    };
+  }, [results]);
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      month: "short", day: "numeric", year: "numeric"
     });
   };
 
   return (
     <StudentLayout>
-      <div className="max-w-6xl mx-auto px-4 py-4">
-        
-        {/* ================= HEADER ================= */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">My Performance</h1>
-            <p className="text-gray-500 mt-1">View your exam history and detailed analytics.</p>
-          </div>
+      <div className="min-h-screen bg-gray-50/50 pb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2">
           
-          {/* Summary Badge */}
-          <div className="bg-white shadow-sm px-5 py-2.5 rounded-full border border-gray-200 flex items-center gap-3 text-sm font-semibold text-indigo-700">
-            <Trophy size={18} className="text-yellow-500" />
-            <span>{results.length} Attempts</span>
-          </div>
-        </div>
+          {/* ================= HEADER & STATS DASHBOARD ================= */}
+          <div className="mb-10">
+            <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Performance Overview</h1>
+            <p className="text-gray-500 mb-8">Track your progress and analyze your assessment history.</p>
 
-        {/* ================= LOADING STATE ================= */}
-        {loading && (
-          <div className="flex flex-col items-center justify-center h-80">
-            <div className="w-12 h-12 rounded-full border-4 border-indigo-100 animate-spin border-t-indigo-600 mb-4"></div>
-            <p className="text-gray-500 font-medium animate-pulse">Loading scorecard...</p>
-          </div>
-        )}
-
-        {/* ================= EMPTY STATE ================= */}
-        {!loading && results.length === 0 && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center max-w-lg mx-auto mt-10">
-            <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <FileText size={40} />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No Exams Yet</h3>
-            <p className="text-gray-500 mb-8 leading-relaxed">
-              You haven't taken any assessments yet. Go to your dashboard to start learning!
-            </p>
-            <Link to="/student">
-              <button className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 hover:-translate-y-1">
-                Go to Dashboard
-              </button>
-            </Link>
-          </div>
-        )}
-
-        {/* ================= RESULTS GRID ================= */}
-        {!loading && results.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {results.map((r) => {
-              // Safety Checks
-              const test = r.testId || { title: "Deleted Test", passingMarks: 0, totalMarks: 100 };
-              const passed = r.score >= test.passingMarks;
-              // Calculate Percentage (Avoid division by zero)
-              const percentage = test.totalMarks > 0 ? Math.round((r.score / test.totalMarks) * 100) : 0;
-
-              return (
-                <div
-                  key={r._id}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col"
-                >
-                  {/* Status Bar */}
-                  <div className={`h-1.5 w-full ${passed ? "bg-green-500" : "bg-red-500"}`}></div>
-                  
-                  <div className="p-6 flex-1 flex flex-col">
-                    
-                    {/* Top Section: Title & Date */}
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="pr-4">
-                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                          {test.title}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-1.5 text-xs font-medium text-gray-400">
-                          <Calendar size={14} />
-                          {formatDate(r.createdAt)}
-                        </div>
-                      </div>
-                      
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                        passed 
-                          ? "bg-green-50 text-green-700 border-green-100" 
-                          : "bg-red-50 text-red-700 border-red-100"
-                      }`}>
-                        {passed ? "Passed" : "Failed"}
-                      </span>
-                    </div>
-
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-3 gap-3 mb-6">
-                      
-                      {/* Score Box */}
-                      <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex flex-col items-center justify-center text-center">
-                        <TrendingUp size={16} className="text-gray-400 mb-1" />
-                        <span className="text-lg font-black text-gray-800">
-                          {r.score}
-                        </span>
-                        <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wide">
-                          / {test.totalMarks}
-                        </span>
-                      </div>
-
-                      {/* Correct Box */}
-                      <div className="bg-green-50/50 rounded-xl p-3 border border-green-100 flex flex-col items-center justify-center text-center">
-                        <CheckCircle size={16} className="text-green-500 mb-1" />
-                        <span className="text-lg font-black text-green-700">
-                          {r.correctAnswers}
-                        </span>
-                        <span className="text-[10px] uppercase font-bold text-green-600/70 tracking-wide">
-                          Correct
-                        </span>
-                      </div>
-
-                      {/* Wrong Box */}
-                      <div className="bg-red-50/50 rounded-xl p-3 border border-red-100 flex flex-col items-center justify-center text-center">
-                        <XCircle size={16} className="text-red-500 mb-1" />
-                        <span className="text-lg font-black text-red-700">
-                          {r.wrongAnswers}
-                        </span>
-                        <span className="text-[10px] uppercase font-bold text-red-600/70 tracking-wide">
-                          Wrong
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Footer Section */}
-                    <div className="mt-auto">
-                      
-                      {/* Progress Bar */}
-                      <div className="mb-4">
-                        <div className="flex justify-between items-center text-xs font-semibold text-gray-500 mb-1.5">
-                          <span>Performance Score</span>
-                          <span>{percentage}%</span>
-                        </div>
-                        <div className="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-1000 ease-out ${passed ? "bg-green-500" : "bg-red-500"}`}
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      {/* View Analysis Button */}
-                      <Link to={`/student/result/${r._id}`}>
-                        <button className="w-full py-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white font-bold rounded-lg text-sm transition-all border border-indigo-100 flex items-center justify-center gap-2 group/btn">
-                          <BarChart2 size={16} />
-                          Detailed Analysis
-                          <ArrowRight size={16} className="transition-transform group-hover/btn:translate-x-1" />
-                        </button>
-                      </Link>
-
-                    </div>
-
+            {!loading && results.length > 0 && stats && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {/* Stat Card 1 */}
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                  <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <Trophy size={24} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">Total Attempts</p>
+                    <h3 className="text-2xl font-bold text-gray-900">{stats.total}</h3>
                   </div>
                 </div>
-              );
-            })}
+                
+                {/* Stat Card 2 */}
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                  <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <CheckCircle size={24} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">Passed Exams</p>
+                    <h3 className="text-2xl font-bold text-gray-900">{stats.passed}</h3>
+                  </div>
+                </div>
+
+                {/* Stat Card 3 */}
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                  <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                    <Target size={24} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">Avg. Score</p>
+                    <h3 className="text-2xl font-bold text-gray-900">{stats.avgScore}%</h3>
+                  </div>
+                </div>
+
+                {/* Stat Card 4 */}
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                  <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                    <TrendingUp size={24} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">Pass Rate</p>
+                    <h3 className="text-2xl font-bold text-gray-900">{stats.passRate}%</h3>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* ================= CONTROLS (SEARCH & FILTER) ================= */}
+          {!loading && results.length > 0 && (
+            <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+              <div className="relative w-full md:w-96">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input 
+                  type="text" 
+                  placeholder="Search exam by title..." 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <Filter size={18} className="text-gray-500" />
+                <select 
+                  value={filter} 
+                  onChange={(e) => setFilter(e.target.value)}
+                  className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full md:w-48 p-2.5"
+                >
+                  <option value="all">All Results</option>
+                  <option value="passed">Passed Only</option>
+                  <option value="failed">Failed Only</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* ================= LOADING STATE ================= */}
+          {loading && (
+            <div className="flex flex-col items-center justify-center h-64">
+              <div className="w-12 h-12 rounded-full border-4 border-indigo-100 animate-spin border-t-indigo-600 mb-4"></div>
+              <p className="text-gray-500 font-medium animate-pulse">Analyzing performance...</p>
+            </div>
+          )}
+
+          {/* ================= EMPTY STATE ================= */}
+          {!loading && results.length === 0 && (
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-16 text-center max-w-2xl mx-auto mt-10">
+              <div className="w-24 h-24 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce-slow">
+                <BarChart2 size={48} />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">No Exam History Found</h3>
+              <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                You haven't taken any assessments yet. Jump into the dashboard to start your learning journey today!
+              </p>
+              <Link to="/student">
+                <button className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 hover:-translate-y-1">
+                  Start Your First Exam
+                </button>
+              </Link>
+            </div>
+          )}
+
+          {/* ================= RESULTS GRID ================= */}
+          {!loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredResults.map((r) => {
+                const test = r.testId || { title: "Deleted Test", passingMarks: 0, totalMarks: 100 };
+                const passed = r.score >= test.passingMarks;
+                const percentage = test.totalMarks > 0 ? Math.round((r.score / test.totalMarks) * 100) : 0;
+
+                return (
+                  <div
+                    key={r._id}
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-200 overflow-hidden transition-all duration-300 hover:-translate-y-1 flex flex-col"
+                  >
+                    {/* Card Header with Status Color */}
+                    <div className={`h-2 w-full ${passed ? "bg-gradient-to-r from-emerald-400 to-emerald-600" : "bg-gradient-to-r from-red-400 to-red-600"}`}></div>
+                    
+                    <div className="p-6 flex-1 flex flex-col">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                            <Clock size={12} />
+                            {formatDate(r.createdAt)}
+                          </div>
+                          <h3 className="text-lg font-bold text-gray-900 line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                            {test.title}
+                          </h3>
+                        </div>
+                        
+                        {passed ? (
+                          <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 p-1.5 rounded-lg">
+                            <CheckCircle size={20} />
+                          </div>
+                        ) : (
+                          <div className="bg-red-50 text-red-700 border border-red-100 p-1.5 rounded-lg">
+                            <XCircle size={20} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Score Circle & Stats */}
+                      <div className="flex items-center gap-6 mb-6">
+                        <div className="relative w-16 h-16 flex-shrink-0">
+                           {/* SVG Circle for visual flair */}
+                           <svg className="w-full h-full transform -rotate-90">
+                            <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-gray-100" />
+                            <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" 
+                              strokeDasharray={175.92} 
+                              strokeDashoffset={175.92 - (175.92 * percentage) / 100} 
+                              className={passed ? "text-emerald-500" : "text-red-500"} 
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center flex-col">
+                            <span className="text-sm font-bold text-gray-900">{percentage}%</span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-x-8 gap-y-1 w-full">
+                          <div>
+                            <span className="text-xs text-gray-400 block">Score</span>
+                            <span className="font-bold text-gray-800">{r.score} <span className="text-gray-400 font-normal">/ {test.totalMarks}</span></span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">Status</span>
+                            <span className={`font-bold ${passed ? "text-emerald-600" : "text-red-600"}`}>
+                              {passed ? "Pass" : "Fail"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Detailed Mini-Grid */}
+                      <div className="grid grid-cols-2 gap-2 mb-6">
+                        <div className="bg-emerald-50/50 rounded-lg p-2 text-center border border-emerald-100">
+                           <span className="block text-xs text-emerald-600/70 font-medium">Correct</span>
+                           <span className="block font-bold text-emerald-700">{r.correctAnswers}</span>
+                        </div>
+                        <div className="bg-red-50/50 rounded-lg p-2 text-center border border-red-100">
+                           <span className="block text-xs text-red-600/70 font-medium">Incorrect</span>
+                           <span className="block font-bold text-red-700">{r.wrongAnswers}</span>
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
+                      <div className="mt-auto">
+                        <Link to={`/student/result/${r._id}`}>
+                          <button className="w-full py-2.5 rounded-xl border border-indigo-100 bg-indigo-50 text-indigo-600 font-semibold hover:bg-indigo-600 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 group/btn">
+                            Detailed Report
+                            <ArrowRight size={16} className="transition-transform group-hover/btn:translate-x-1" />
+                          </button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          
+          {/* No Search Results State */}
+          {!loading && results.length > 0 && filteredResults.length === 0 && (
+            <div className="text-center py-20">
+              <div className="inline-block p-4 rounded-full bg-gray-100 mb-4">
+                <Search size={32} className="text-gray-400" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">No results found</h3>
+              <p className="text-gray-500">Try adjusting your filters or search query.</p>
+              <button 
+                onClick={() => {setSearch(""); setFilter("all")}}
+                className="mt-4 text-indigo-600 font-semibold hover:underline"
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
+          
+        </div>
       </div>
     </StudentLayout>
   );
