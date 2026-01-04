@@ -46,11 +46,38 @@ router.get("/admin/all", protect, adminOnly, async (req, res) => {
 });
 
 router.delete("/:id", protect, adminOnly, async (req, res) => {
-  const testId = req.params.id;
-  const deletedTest = await Test.findByIdAndDelete(testId);
-  if (!deletedTest) return res.status(404).json({ message: "Test not found" });
-  await Question.deleteMany({ testId });
-  res.json({ message: "Test deleted successfully" });
+  try {
+    const testId = req.params.id;
+    
+    // 1. First, check if the test exists
+    const test = await Test.findById(testId);
+    if (!test) {
+      return res.status(404).json({ message: "Test not found" });
+    }
+
+    // 2. Delete all questions associated with this testId
+    // Doing this first ensures we don't leave "orphan" questions if the process fails later
+    await Question.deleteMany({ testId: testId });
+
+    // 3. Finally, delete the test itself
+    await Test.findByIdAndDelete(testId);
+
+    // Optional: Add a Notification for deletion too
+    try {
+        await Notification.create({
+            type: 'alert', // distinct type for deletions
+            title: 'Assessment Deleted',
+            message: `Admin deleted the test: '${test.title}'`,
+            link: '/admin/manage-tests',
+            isRead: false
+        });
+    } catch (err) { console.error("Notification fail", err); }
+
+    res.json({ message: "Test and all associated questions deleted successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error during deletion" });
+  }
 });
 
 router.get("/student/all", protect, async (req, res) => {

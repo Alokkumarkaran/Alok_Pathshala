@@ -61,10 +61,13 @@ export default function StudentDashboard() {
           setResults(data);
 
           const chartData = [...data].reverse().map((r) => {
-              const total = r.testId?.totalMarks || 100;
+              // SAFEGUARD: Handle deleted test data for Chart
+              const test = r.testId || { title: "Deleted Test", totalMarks: 100 };
+              const total = test.totalMarks || 100; // Prevent division by zero
               const percentage = Math.round((r.score / total) * 100);
+              
               return {
-                name: r.testId?.title || "Test",
+                name: test.title,
                 score: r.score,
                 percentage: percentage,
                 date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
@@ -138,7 +141,7 @@ export default function StudentDashboard() {
                 
                 {/* Right Side: CTA Button */}
                 <div className="w-full md:w-auto flex-shrink-0">
-                     <Link to="/student/all-tests" className="block w-full">
+                      <Link to="/student/all-tests" className="block w-full">
                         <button className="group relative w-full md:w-auto flex items-center justify-center gap-3 px-8 py-5 bg-white text-indigo-700 rounded-2xl font-bold text-lg shadow-[0_20px_50px_-12px_rgba(255,255,255,0.3)] hover:shadow-[0_20px_50px_-12px_rgba(255,255,255,0.5)] hover:-translate-y-1 transition-all duration-300 overflow-hidden">
                             
                             {/* Button Shine Effect */}
@@ -340,7 +343,14 @@ export default function StudentDashboard() {
                 ) : (
                   // List Items
                   results.slice(0, 5).map((r) => {
-                    const isPassed = r.score >= r.testId?.passingMarks;
+                    // SAFEGUARD: Handle deleted test data for List
+                    const test = r.testId || { 
+                        title: "Assessment Unavailable", 
+                        passingMarks: 0, 
+                        isDeleted: true 
+                    };
+                    const isPassed = r.score >= test.passingMarks;
+                    
                     return (
                       <Link to={`/student/result/${r._id}`} key={r._id} className="block group relative">
                         <div className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-200 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between gap-4">
@@ -349,28 +359,32 @@ export default function StudentDashboard() {
                           <div className="flex items-center gap-4 min-w-0 flex-1">
                             {/* Status Icon Box */}
                             <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center border ${
-                              isPassed 
-                                ? "bg-emerald-50 border-emerald-100 text-emerald-600" 
-                                : "bg-red-50 border-red-100 text-red-500"
+                              test.isDeleted 
+                                ? "bg-gray-50 border-gray-100 text-gray-400"
+                                : isPassed 
+                                    ? "bg-emerald-50 border-emerald-100 text-emerald-600" 
+                                    : "bg-red-50 border-red-100 text-red-500"
                             }`}>
-                              {isPassed ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
+                              {test.isDeleted ? <AlertCircle size={20} /> : (isPassed ? <CheckCircle2 size={20} /> : <XCircle size={20} />)}
                             </div>
 
                             {/* Text Details */}
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 mb-0.5">
-                                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                                   isPassed ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                                 }`}>
-                                   {isPassed ? "Passed" : "Failed"}
-                                 </span>
+                                 {!test.isDeleted && (
+                                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                       isPassed ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                                     }`}>
+                                       {isPassed ? "Passed" : "Failed"}
+                                     </span>
+                                 )}
                                  <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
                                    <Calendar size={10} />
                                    {new Date(r.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                  </span>
                               </div>
-                              <h4 className="text-sm sm:text-base font-bold text-slate-800 truncate group-hover:text-indigo-600 transition-colors">
-                                {r.testId?.title || "Unknown Test"}
+                              <h4 className={`text-sm sm:text-base font-bold truncate group-hover:text-indigo-600 transition-colors ${test.isDeleted ? 'text-gray-400 italic' : 'text-slate-800'}`}>
+                                {test.title}
                               </h4>
                             </div>
                           </div>
@@ -379,7 +393,9 @@ export default function StudentDashboard() {
                           <div className="text-right pl-2 border-l border-slate-100">
                               <span className="block text-xs font-semibold text-slate-400 uppercase">Score</span>
                               <span className={`text-xl font-black ${
-                                  isPassed ? "text-emerald-600" : "text-red-600"
+                                test.isDeleted 
+                                    ? "text-gray-400" 
+                                    : isPassed ? "text-emerald-600" : "text-red-600"
                               }`}>
                                   {r.score}
                               </span>

@@ -5,7 +5,7 @@ import api from "../../api/axios";
 import AdminLayout from "../../layouts/AdminLayout";
 import { 
   Plus, Trash2, Search, FileText, Clock, Award, 
-  MoreVertical, AlertTriangle, Calendar, LayoutGrid, 
+  MoreVertical, AlertTriangle, Calendar, LayoutGrid, Library,
   List as ListIcon, Edit, Copy, BarChart2, CheckCircle, XCircle
 } from "lucide-react";
 
@@ -81,11 +81,15 @@ export default function ManageTests() {
     if (!selectedTestId) return;
     setIsDeleting(true);
     try {
+      // The backend should handle deleting questions associated with this test ID
       await api.delete(`/test/${selectedTestId}`);
+      
+      // Update UI state locally
       setTests(tests.filter((t) => t._id !== selectedTestId));
       setDeleteModalOpen(false);
     } catch (error) {
-      alert("Failed to delete test.");
+      console.error("Delete failed:", error);
+      alert("Failed to delete test. Please check your connection.");
     } finally {
       setIsDeleting(false);
       setSelectedTestId(null);
@@ -100,23 +104,35 @@ export default function ManageTests() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 min-h-screen">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 py-2 min-h-screen">
         
-        {/* ================= HEADER ================= */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
-          <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Assessment Library</h1>
-            <p className="text-gray-500 mt-2 font-medium">Manage your exams, quizzes, and question banks.</p>
-          </div>
-          
-          <Link to="/admin/create-test">
-            <button className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 font-bold transform hover:-translate-y-0.5 active:scale-95">
-              <Plus size={20} strokeWidth={3} /> 
-              Create New Assessment
-            </button>
-          </Link>
-        </div>
+       {/* ================= HEADER ================= */}
+<div className="relative bg-gradient-to-br from-indigo-50 via-white to-white border border-indigo-100 rounded-2xl p-6 sm:p-8 mb-8 shadow-sm overflow-hidden">
+  
+  {/* Decorative Background Element */}
+  <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-indigo-100 opacity-50 blur-3xl pointer-events-none"></div>
 
+  <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
+    
+    {/* Text Section */}
+    <div className="space-y-2">
+      <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+        Assessment Library
+      </h1>
+      <p className="text-gray-500 font-medium text-lg max-w-xl">
+        Manage your exams and quizzes. Organize your curriculum efficiently.
+      </p>
+    </div>
+
+    {/* Button Section */}
+    <Link to="/admin/create-test" className="shrink-0">
+      <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 font-bold transform hover:-translate-y-1 active:scale-95 group">
+        <Plus size={20} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-300" /> 
+        Create Assessment
+      </button>
+    </Link>
+  </div>
+</div>
         {/* ================= TOOLBAR ================= */}
         <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 mb-8 flex flex-col md:flex-row items-center gap-3">
            
@@ -208,7 +224,6 @@ const GridCard = ({ test, onDelete, activeMenu, toggleMenu }) => (
     exit={{ opacity: 0, scale: 0.9 }}
     className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
   >
-    {/* Colored Header Strip */}
     <div className="h-2 w-full bg-gradient-to-r from-indigo-500 to-purple-500"></div>
 
     <div className="p-6">
@@ -217,7 +232,6 @@ const GridCard = ({ test, onDelete, activeMenu, toggleMenu }) => (
           <FileText size={24} />
         </div>
         
-        {/* Action Menu Trigger */}
         <div className="relative">
           <button 
             onClick={(e) => toggleMenu(e, test._id)}
@@ -226,7 +240,6 @@ const GridCard = ({ test, onDelete, activeMenu, toggleMenu }) => (
             <MoreVertical size={20} />
           </button>
           
-          {/* Dropdown Menu */}
           {activeMenu === test._id && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-in fade-in zoom-in duration-200 origin-top-right">
               <button className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2">
@@ -285,7 +298,6 @@ const ListRow = ({ test, onDelete, activeMenu, toggleMenu }) => (
       </div>
     </div>
 
-    {/* Quick Actions for List View */}
     <div className="flex items-center gap-2">
        <button onClick={(e) => onDelete(e, test._id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
          <Trash2 size={18} />
@@ -310,6 +322,7 @@ const InfoBadge = ({ icon: Icon, text, color }) => {
   );
 };
 
+// UPDATED MODAL TO REFLECT DATABASE CHANGES
 const DeleteModal = ({ onClose, onConfirm, isDeleting }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 text-center transform scale-100 transition-all">
@@ -317,15 +330,19 @@ const DeleteModal = ({ onClose, onConfirm, isDeleting }) => (
         <AlertTriangle size={32} className="text-red-500" />
       </div>
       <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Assessment?</h3>
-      <p className="text-gray-500 text-sm mb-8">
-        This action is permanent. All student results associated with this exam will also be deleted.
+      <p className="text-gray-500 text-sm mb-6">
+        <span className="block font-bold text-red-500 mb-1">Warning: Irreversible Action</span>
+        Deleting this exam will permanently remove:
+        <br/>• The Exam itself
+        <br/>• <span className="font-semibold text-gray-700">All Questions inside it</span>
+        <br/>• All Student Results
       </p>
       <div className="flex gap-3">
         <button onClick={onClose} className="flex-1 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition">
           Cancel
         </button>
         <button onClick={onConfirm} disabled={isDeleting} className="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-200 transition flex items-center justify-center gap-2">
-          {isDeleting ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> : <><Trash2 size={18} /> Delete</>}
+          {isDeleting ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> : <><Trash2 size={18} /> Confirm Delete</>}
         </button>
       </div>
     </div>

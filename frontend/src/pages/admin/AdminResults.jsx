@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
 import AdminLayout from "../../layouts/AdminLayout";
 import { 
-  Search, Download, ChevronLeft, ChevronRight, ArrowUpDown, 
-  Filter, FileCheck, User, Clock, AlertCircle, Eye, X, CheckCircle, XCircle
+  Search, Download, ChevronLeft, ChevronRight, ArrowUpDown, TrendingUp, Users, Award,
+  Filter, FileCheck, User, Clock, AlertCircle, Eye, X, CheckCircle, XCircle, FileBarChart
 } from "lucide-react";
 
 export default function AdminResults() {
@@ -132,22 +132,46 @@ export default function AdminResults() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 py-2 space-y-6">
         
         {/* ================= HEADER ================= */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Exam Results</h1>
-             <p className="text-gray-500 mt-1">Manage and analyze student performance.</p>
-          </div>
-          <button 
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:text-indigo-600 transition shadow-sm active:scale-95"
-          >
-            <Download size={18} /> Export Data
-          </button>
+<div className="bg-gradient-to-r from-gray-50 via-white to-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm">
+  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    
+    {/* Left: Title */}
+    <div className="flex items-center gap-4">
+        <div className="p-3 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200">
+            <FileBarChart size={24} className="text-white" />
+        </div>
+        <div>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Results & Analysis</h1>
+            <p className="text-gray-500 font-medium text-sm">Deep dive into student grades.</p>
+        </div>
+    </div>
+
+    {/* Right: Tools */}
+    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+        
+        {/* Search Input */}
+        <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+            <input 
+                type="text" 
+                placeholder="Search student..." 
+                className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none shadow-sm transition-all"
+            />
         </div>
 
+        <button 
+          onClick={handleExport}
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-900 text-white font-bold text-sm rounded-lg hover:bg-gray-800 transition shadow-md active:scale-95"
+        >
+          <Download size={18} /> 
+          <span className="hidden sm:inline">Export</span>
+        </button>
+    </div>
+  </div>
+</div>
         {/* ================= STATS ROW ================= */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
            <StatCard label="Total Submissions" value={stats.total} icon={FileCheck} color="blue" />

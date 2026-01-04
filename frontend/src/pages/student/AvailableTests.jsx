@@ -13,7 +13,10 @@ import {
   X,
   Zap,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Library,
+  AlertTriangle,
+  ChevronDown
 } from "lucide-react";
 
 export default function AvailableTests() {
@@ -71,103 +74,113 @@ export default function AvailableTests() {
     <StudentLayout>
       <div className="max-w-7xl mx-auto px-0 sm:px-6 py-2 space-y-4">
         
-        {/* === HEADER SECTION === */}
-        <div className="relative bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-slate-100 overflow-visible">
-          {/* Decorative Background */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none opacity-60"></div>
-          <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-50 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none opacity-60"></div>
-          
-          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
-            <div className="space-y-2 max-w-xl text-center lg:text-left">
-              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                Exam Library
-              </h1>
-              <p className="text-slate-500 text-lg">
-                Discover {tests.length} assessments designed to challenge your skills.
-              </p>
-            </div>
+        
 
-            {/* Actions: Search & Filter */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-              
-              {/* Search Bar */}
-              <div className="relative group w-full sm:w-80">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Search size={20} className="text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search exams..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-11 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all shadow-sm"
-                />
-                {searchTerm && (
-                  <button 
-                    onClick={() => setSearchTerm("")}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600"
-                  >
-                    <X size={18} />
-                  </button>
-                )}
-              </div>
-
-              {/* Filter Dropdown */}
-              <div className="relative">
-                <button 
-                  onClick={() => setShowFilter(!showFilter)}
-                  className={`h-full px-5 py-3.5 flex items-center gap-2 rounded-2xl border font-semibold transition-all ${
-                    filterDifficulty !== "All" 
-                      ? "bg-indigo-50 border-indigo-200 text-indigo-700" 
-                      : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  <Filter size={20} />
-                  <span className="hidden sm:inline">{filterDifficulty === "All" ? "Filter" : filterDifficulty}</span>
-                </button>
-
-                {/* Dropdown Menu */}
-                {showFilter && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
-                    {["All", "Easy", "Medium", "Hard"].map((lvl) => (
-                      <button
-                        key={lvl}
-                        onClick={() => {
-                          setFilterDifficulty(lvl);
-                          setShowFilter(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                          filterDifficulty === lvl 
-                            ? "bg-indigo-50 text-indigo-700" 
-                            : "text-slate-600 hover:bg-slate-50"
-                        }`}
-                      >
-                        {lvl}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+{/* === HEADER SECTION === */}
+<div className="relative bg-white/90 backdrop-blur-xl rounded-[2rem] p-6 sm:p-10 shadow-xl shadow-indigo-100/50 border border-white/20 overflow-visible mb-8">
+  
+  {/* Modern Gradient Blobs */}
+  <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-indigo-100/40 to-purple-100/40 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+  <div className="absolute bottom-0 left-0 w-60 h-60 bg-blue-50/50 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
+  
+  <div className="relative z-10 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-8">
+    
+    {/* Title Section */}
+    <div className="space-y-1 max-w-xl">
+      <div className="flex items-center gap-2 mb-2">
+        <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+           <Library size={20} />
         </div>
+        <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Assessment Hub</span>
+      </div>
+      <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
+        Exam Library
+      </h1>
+      <p className="text-slate-500 text-lg font-medium mt-3">
+        Browse <span className="text-slate-900 font-bold">{tests.length}</span> active assessments available for students.
+      </p>
+    </div>
 
-        {/* === ERROR STATE === */}
-        {error && (
-          <div className="bg-rose-50 border border-rose-100 rounded-3xl p-8 text-center animate-in fade-in">
-            <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertCircle size={32} />
+    {/* Controls: Search & Filter */}
+    <div className="flex flex-col sm:flex-row w-full xl:w-auto gap-3">
+      
+      {/* Search Input */}
+      <div className="relative group flex-1 sm:w-80">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <Search size={20} className="text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+        </div>
+        <input
+          type="text"
+          placeholder="Find an exam..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-11 pr-12 py-4 bg-slate-50 border-2 border-transparent hover:border-slate-200 focus:border-indigo-500 rounded-2xl text-slate-900 font-bold placeholder:font-medium placeholder:text-slate-400 focus:outline-none focus:bg-white transition-all shadow-inner"
+        />
+        {searchTerm ? (
+          <button onClick={() => setSearchTerm("")} className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-rose-500 transition-colors">
+            <X size={18} />
+          </button>
+        ) : (
+             // Visual "Shortcut" Hint (Non-functional, purely aesthetic for pro feel)
+            <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <kbd className="hidden md:inline-flex items-center h-6 px-2 text-xs font-bold text-slate-400 bg-white border border-slate-200 rounded">⌘K</kbd>
             </div>
-            <h3 className="text-lg font-bold text-rose-900 mb-2">Oops! Something went wrong</h3>
-            <p className="text-rose-600 mb-6">{error}</p>
-            <button 
-              onClick={fetchTests}
-              className="px-6 py-2.5 bg-rose-600 text-white rounded-xl font-semibold hover:bg-rose-700 transition-colors inline-flex items-center gap-2"
-            >
-              <RefreshCw size={18} /> Retry
-            </button>
+        )}
+      </div>
+
+      {/* Filter Dropdown */}
+      <div className="relative min-w-[160px]">
+        <button 
+          onClick={() => setShowFilter(!showFilter)}
+          className={`w-full h-full px-5 py-4 flex items-center justify-between gap-3 rounded-2xl font-bold transition-all border-2 ${
+            filterDifficulty !== "All" 
+              ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200" 
+              : "bg-white border-slate-100 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+              <Filter size={18} />
+              <span>{filterDifficulty}</span>
+          </div>
+          <ChevronDown size={16} className={`transition-transform duration-300 ${showFilter ? 'rotate-180' : ''}`} />
+        </button>
+
+        {showFilter && (
+          <div className="absolute right-0 mt-2 w-full min-w-[180px] bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-2 z-50">
+            {["All", "Easy", "Medium", "Hard"].map((lvl) => (
+              <button
+                key={lvl}
+                onClick={() => { setFilterDifficulty(lvl); setShowFilter(false); }}
+                className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                  filterDifficulty === lvl ? "bg-indigo-50 text-indigo-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                }`}
+              >
+                {lvl}
+              </button>
+            ))}
           </div>
         )}
+      </div>
+    </div>
+  </div>
+</div>
+
+{/* === ERROR STATE (Refined) === */}
+{error && (
+  <div className="bg-red-50/50 border border-red-100 rounded-[2rem] p-8 text-center animate-in fade-in slide-in-from-bottom-4 mb-8">
+    <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-sm mb-4">
+        <AlertTriangle size={32} className="text-red-500" />
+    </div>
+    <h3 className="text-xl font-black text-slate-900 mb-2">Connection Interrupted</h3>
+    <p className="text-slate-500 font-medium mb-6 max-w-md mx-auto">{error}. Please check your connection and try again.</p>
+    <button 
+      onClick={fetchTests}
+      className="px-8 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200 hover:-translate-y-1 active:scale-95 inline-flex items-center gap-2"
+    >
+      <RefreshCw size={18} className="animate-spin-slow" /> Retry Connection
+    </button>
+  </div>
+)}
 
         {/* === CONTENT GRID === */}
         {!error && (

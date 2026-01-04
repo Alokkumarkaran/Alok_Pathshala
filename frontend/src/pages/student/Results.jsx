@@ -14,7 +14,8 @@ import {
   Search,
   Filter,
   Clock,
-  Target
+  Target,
+  AlertCircle // Added for deleted tests
 } from "lucide-react";
 
 export default function Results() {
@@ -41,10 +42,12 @@ export default function Results() {
   // --- DERIVED STATS & FILTERING ---
   const filteredResults = useMemo(() => {
     return results.filter((r) => {
-      const testTitle = r.testId?.title?.toLowerCase() || "";
+      // SAFEGUARD 1: Handle null testId (Deleted Tests)
+      const test = r.testId || { title: "", passingMarks: 0 };
+      
+      const testTitle = test.title.toLowerCase();
       const matchesSearch = testTitle.includes(search.toLowerCase());
       
-      const test = r.testId || { passingMarks: 0 };
       const isPassed = r.score >= test.passingMarks;
       
       if (filter === "passed") return matchesSearch && isPassed;
@@ -56,11 +59,16 @@ export default function Results() {
   const stats = useMemo(() => {
     if (!results.length) return null;
     const totalTests = results.length;
-    const passedTests = results.filter(r => r.score >= (r.testId?.passingMarks || 0)).length;
+    
+    // SAFEGUARD 2: Calculate stats safely even if test is deleted
+    const passedTests = results.filter(r => {
+        const passingMarks = r.testId?.passingMarks || 0;
+        return r.score >= passingMarks;
+    }).length;
     
     // Calculate Average Percentage
     const totalPercentage = results.reduce((acc, curr) => {
-      const max = curr.testId?.totalMarks || 100;
+      const max = curr.testId?.totalMarks || 100; // Default to 100 to avoid division by zero
       return acc + ((curr.score / max) * 100);
     }, 0);
     
@@ -68,8 +76,8 @@ export default function Results() {
       total: totalTests,
       passed: passedTests,
       failed: totalTests - passedTests,
-      avgScore: Math.round(totalPercentage / totalTests),
-      passRate: Math.round((passedTests / totalTests) * 100)
+      avgScore: Math.round(totalPercentage / totalTests) || 0,
+      passRate: totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0
     };
   }, [results]);
 
@@ -85,44 +93,77 @@ export default function Results() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2">
           
           {/* ================= HEADER & STATS DASHBOARD ================= */}
-          <div className="mb-10">
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Performance Overview</h1>
-            <p className="text-gray-500 mb-8">Track your progress and analyze your assessment history.</p>
+<div className="bg-white border border-gray-200 rounded-3xl p-6 lg:p-8 mb-10 shadow-sm">
+  
+  {/* Header Section */}
+  <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+    <div>
+      <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+        Performance Overview
+        <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold border border-indigo-100 uppercase tracking-wide">
+            Live Stats
+        </span>
+      </h1>
+      <p className="text-gray-500 mt-2 font-medium text-lg">
+        Track your progress and analyze your assessment history.
+      </p>
+    </div>
+    
+    {/* Optional: Date/Context */}
+    <div className="text-right hidden md:block">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Last Updated</p>
+        <p className="text-sm font-bold text-gray-900">Just now</p>
+    </div>
+  </div>
 
-            {!loading && results.length > 0 && stats && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                {/* Stat Card 1 */}
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                  <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-                    <Trophy size={24} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">Total Attempts</p>
-                    <h3 className="text-2xl font-bold text-gray-900">{stats.total}</h3>
-                  </div>
-                </div>
-                
-                {/* Stat Card 2 */}
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                  <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                    <CheckCircle size={24} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">Passed Exams</p>
-                    <h3 className="text-2xl font-bold text-gray-900">{stats.passed}</h3>
-                  </div>
-                </div>
+  {!loading && results.length > 0 && stats && (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      {/* Card 1: Total Attempts (Blue) */}
+      <div className="bg-blue-50/50 border border-blue-100 p-5 rounded-2xl flex items-center gap-4 transition-transform hover:-translate-y-1">
+        <div className="p-3 bg-blue-100 text-blue-600 rounded-xl shadow-sm">
+          <Trophy size={24} strokeWidth={2.5} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Total Attempts</p>
+          <h3 className="text-3xl font-black text-gray-900">{stats.total}</h3>
+        </div>
+      </div>
+      
+      {/* Card 2: Passed (Green) */}
+      <div className="bg-emerald-50/50 border border-emerald-100 p-5 rounded-2xl flex items-center gap-4 transition-transform hover:-translate-y-1">
+        <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl shadow-sm">
+          <CheckCircle size={24} strokeWidth={2.5} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Passed Exams</p>
+          <h3 className="text-3xl font-black text-gray-900">{stats.passed}</h3>
+        </div>
+      </div>
 
-                {/* Stat Card 3 */}
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                  <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                    <Target size={24} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">Avg. Score</p>
-                    <h3 className="text-2xl font-bold text-gray-900">{stats.avgScore}%</h3>
-                  </div>
-                </div>
+      {/* Card 3: Avg Score (Purple) */}
+      <div className="bg-purple-50/50 border border-purple-100 p-5 rounded-2xl flex items-center gap-4 transition-transform hover:-translate-y-1">
+        <div className="p-3 bg-purple-100 text-purple-600 rounded-xl shadow-sm">
+          <Target size={24} strokeWidth={2.5} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-purple-600 uppercase tracking-wider">Avg. Score</p>
+          <h3 className="text-3xl font-black text-gray-900">{stats.avgScore}%</h3>
+        </div>
+      </div>
+
+       {/* Card 4: Efficiency/Time (Orange) - New Addition to fill grid */}
+       <div className="bg-orange-50/50 border border-orange-100 p-5 rounded-2xl flex items-center gap-4 transition-transform hover:-translate-y-1">
+        <div className="p-3 bg-orange-100 text-orange-600 rounded-xl shadow-sm">
+          <TrendingUp size={24} strokeWidth={2.5} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">Success Rate</p>
+          <h3 className="text-3xl font-black text-gray-900">
+            {stats.total > 0 ? Math.round((stats.passed / stats.total) * 100) : 0}%
+          </h3>
+        </div>
+      </div>
 
                 {/* Stat Card 4 */}
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
@@ -197,8 +238,17 @@ export default function Results() {
           {!loading && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredResults.map((r) => {
-                const test = r.testId || { title: "Deleted Test", passingMarks: 0, totalMarks: 100 };
+                // SAFEGUARD 3: Handle Missing Test Data (Admin Deleted It)
+                // If r.testId is null, use a fallback object
+                const test = r.testId || { 
+                    title: "Assessment Unavailable (Deleted)", 
+                    passingMarks: 0, 
+                    totalMarks: 100, // Prevent division by zero
+                    isDeleted: true 
+                };
+                
                 const passed = r.score >= test.passingMarks;
+                // Calculate percentage safely
                 const percentage = test.totalMarks > 0 ? Math.round((r.score / test.totalMarks) * 100) : 0;
 
                 return (
@@ -211,22 +261,25 @@ export default function Results() {
                     
                     <div className="p-6 flex-1 flex flex-col">
                       <div className="flex justify-between items-start mb-4">
-                        <div>
+                        <div className="flex-1 pr-2">
                           <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
                             <Clock size={12} />
                             {formatDate(r.createdAt)}
                           </div>
-                          <h3 className="text-lg font-bold text-gray-900 line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                          
+                          {/* Title Handling for Deleted Tests */}
+                          <h3 className={`text-lg font-bold line-clamp-2 transition-colors ${test.isDeleted ? 'text-gray-400 italic' : 'text-gray-900 group-hover:text-indigo-600'}`}>
+                            {test.isDeleted && <AlertCircle size={16} className="inline mr-1 text-orange-400" />}
                             {test.title}
                           </h3>
                         </div>
                         
                         {passed ? (
-                          <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 p-1.5 rounded-lg">
+                          <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 p-1.5 rounded-lg flex-shrink-0">
                             <CheckCircle size={20} />
                           </div>
                         ) : (
-                          <div className="bg-red-50 text-red-700 border border-red-100 p-1.5 rounded-lg">
+                          <div className="bg-red-50 text-red-700 border border-red-100 p-1.5 rounded-lg flex-shrink-0">
                             <XCircle size={20} />
                           </div>
                         )}

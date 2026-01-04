@@ -14,7 +14,8 @@ import {
   ChevronUp,
   BarChart2,
   List,
-  Clock
+  Clock,
+  AlertCircle // Added for deleted state
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
 
@@ -43,21 +44,41 @@ export default function ResultAnalysis() {
   // --- DERIVED STATE ---
   const stats = useMemo(() => {
     if (!data) return null;
-    const { testId: test, answers = [], score, correctAnswers, wrongAnswers } = data;
-    const totalQuestions = test?.totalQuestions || answers.length || 0;
+
+    // SAFEGUARD: Handle deleted test (testId might be null)
+    const test = data.testId || { 
+        title: "Assessment Unavailable (Deleted)", 
+        totalQuestions: 0, 
+        totalMarks: 0, 
+        passingMarks: 0,
+        isDeleted: true
+    };
+
+    const { answers = [], score, correctAnswers, wrongAnswers } = data;
+    const totalQuestions = test.totalQuestions || answers.length || 0;
+    
+    // Fallback logic for skipped calculation
     const skipped = answers.length > 0 
       ? answers.filter(a => a.selectedIndex === -1 || a.selectedIndex === null).length 
       : (totalQuestions - (correctAnswers + wrongAnswers));
-    const percentage = test?.totalMarks ? Math.round((score / test.totalMarks) * 100) : 0;
+
+    // Prevent division by zero
+    const percentage = test.totalMarks > 0 ? Math.round((score / test.totalMarks) * 100) : 0;
     
-    return { test, score, correctAnswers, wrongAnswers, skipped, percentage, totalQuestions };
+    // Check if question data exists (it might be null if admin deleted questions)
+    const hasQuestionData = answers.every(a => a.questionId !== null);
+
+    return { test, score, correctAnswers, wrongAnswers, skipped, percentage, totalQuestions, hasQuestionData };
   }, [data]);
 
   const filteredAnswers = useMemo(() => {
     if (!data?.answers) return [];
     return data.answers.filter((ans) => {
       const q = ans.questionId;
-      if (!q) return false; 
+      
+      // SAFEGUARD: If question is deleted from DB, q is null. 
+      // We still want to show the answer slot if possible, or handle it in render.
+      if (!q) return filter === 'all'; // Only show empty slots in 'all' view
 
       let correctChoice = q.correctOptionIndex;
       if (correctChoice === undefined && q.options) {
@@ -100,23 +121,7 @@ export default function ResultAnalysis() {
     </StudentLayout>
   );
 
-  const { test, score, correctAnswers, wrongAnswers, skipped, percentage } = stats;
-  
-  // Check for legacy data
-  if (!data.answers || data.answers.length === 0) {
-    return (
-       <StudentLayout>
-        <div className="max-w-2xl mx-auto mt-20 p-8 bg-amber-50 border border-amber-200 rounded-2xl text-center">
-          <AlertTriangle size={40} className="text-amber-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-amber-900 mb-2">Detailed Analysis Unavailable</h2>
-          <p className="text-amber-800 mb-6">This record does not contain detailed question data.</p>
-          <Link to="/student">
-            <button className="px-6 py-2 bg-amber-600 text-white font-bold rounded-lg hover:bg-amber-700 transition">Return Home</button>
-          </Link>
-        </div>
-      </StudentLayout>
-    );
-  }
+  const { test, score, correctAnswers, wrongAnswers, skipped, percentage, hasQuestionData } = stats;
 
   const chartData = [
     { name: "Correct", value: correctAnswers, color: "#10b981" }, 
@@ -138,15 +143,23 @@ export default function ResultAnalysis() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{test?.title || "Exam Analysis"}</h1>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${
-                    percentage >= (test?.passingMarks/test?.totalMarks)*100 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200"
-                  }`}>
-                    {percentage >= (test?.passingMarks/test?.totalMarks)*100 ? "Passed" : "Failed"}
-                  </span>
+                  <h1 className={`text-3xl font-extrabold tracking-tight ${test.isDeleted ? 'text-gray-500 italic' : 'text-gray-900'}`}>
+                    {test.isDeleted && <AlertCircle className="inline mr-2 text-orange-500" size={28} />}
+                    {test.title || "Exam Analysis"}
+                  </h1>
+                  
+                  {/* Hide Pass/Fail badge if total marks is 0 (deleted test usually) */}
+                  {test.totalMarks > 0 && (
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${
+                        percentage >= (test.passingMarks/test.totalMarks)*100 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200"
+                      }`}>
+                        {percentage >= (test.passingMarks/test.totalMarks)*100 ? "Passed" : "Failed"}
+                      </span>
+                  )}
                 </div>
                 <p className="text-gray-500 flex items-center gap-2 text-sm">
                   <Clock size={14} /> Completed on {new Date(data.createdAt).toLocaleDateString()}
+                  {test.isDeleted && <span className="text-orange-500 font-medium ml-2">• Test has been deleted by Admin</span>}
                 </p>
               </div>
 
@@ -182,7 +195,7 @@ export default function ResultAnalysis() {
                        <span className="text-4xl font-black text-gray-900">{score}</span>
                      </div>
                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                       Total Marks: {test?.totalMarks}
+                       Total Marks: {test.totalMarks}
                      </div>
                    </div>
                    
@@ -234,7 +247,7 @@ export default function ResultAnalysis() {
                   </ResponsiveContainer>
                   {/* Center Text Overlay */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
-                     <span className="text-3xl font-bold text-gray-300 opacity-20"><BarChart2 size={48}/></span>
+                      <span className="text-3xl font-bold text-gray-300 opacity-20"><BarChart2 size={48}/></span>
                   </div>
                 </div>
               </div>
@@ -268,15 +281,31 @@ export default function ResultAnalysis() {
 
               {/* Questions List */}
               <div className="space-y-4">
-                {filteredAnswers.length === 0 && (
+                {/* 1. STATE: Questions Deleted from DB */}
+                {!hasQuestionData && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-2xl p-8 text-center">
+                        <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle size={32} />
+                        </div>
+                        <h3 className="text-lg font-bold text-orange-900 mb-2">Detailed Analysis Unavailable</h3>
+                        <p className="text-orange-800 max-w-md mx-auto">
+                            The administrator has deleted the source questions for this assessment. While your score is preserved, the question text and options can no longer be displayed.
+                        </p>
+                    </div>
+                )}
+
+                {/* 2. STATE: Empty Filter Result (Only if data exists) */}
+                {hasQuestionData && filteredAnswers.length === 0 && (
                    <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
                      <p className="text-gray-400">No questions found in this category.</p>
                    </div>
                 )}
 
-                {filteredAnswers.map((item, index) => {
+                {/* 3. STATE: Normal List */}
+                {hasQuestionData && filteredAnswers.map((item, index) => {
                   const q = item.questionId; 
-                  if (!q) return null;
+                  if (!q) return null; // Should be handled by hasQuestionData check, but extra safety
+                  
                   const userChoice = item.selectedIndex;
                   
                   let correctChoice = q.correctOptionIndex;
@@ -301,29 +330,29 @@ export default function ResultAnalysis() {
                         className="p-5 cursor-pointer flex gap-4"
                         onClick={() => setExpandedQuestion(isExpanded ? null : index)}
                       >
-                         <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
+                          <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
                            isCorrect ? 'bg-emerald-100 text-emerald-700' : isWrong ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'
-                         }`}>
-                           {isCorrect ? <CheckCircle size={20} /> : isWrong ? <XCircle size={20} /> : <MinusCircle size={20} />}
-                         </div>
+                          }`}>
+                            {isCorrect ? <CheckCircle size={20} /> : isWrong ? <XCircle size={20} /> : <MinusCircle size={20} />}
+                          </div>
 
-                         <div className="flex-1">
-                            <div className="flex justify-between items-start">
-                               <h3 className="text-gray-900 font-semibold text-base md:text-lg leading-snug pr-8">
-                                 {q.question}
-                               </h3>
-                               <button className="text-gray-400 hover:text-indigo-600 transition-colors">
-                                 {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                               </button>
-                            </div>
-                            
-                            {!isExpanded && (
-                               <div className="mt-2 text-xs font-medium text-gray-500 flex items-center gap-2">
+                          <div className="flex-1">
+                             <div className="flex justify-between items-start">
+                                <h3 className="text-gray-900 font-semibold text-base md:text-lg leading-snug pr-8">
+                                  {q.question}
+                                </h3>
+                                <button className="text-gray-400 hover:text-indigo-600 transition-colors">
+                                  {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                </button>
+                             </div>
+                             
+                             {!isExpanded && (
+                                <div className="mt-2 text-xs font-medium text-gray-500 flex items-center gap-2">
                                   <span>Correct Answer: <span className="font-bold text-gray-700">{String.fromCharCode(65 + correctChoice)}</span></span>
                                   {isWrong && <span className="text-red-500">• Your Answer: <span className="font-bold">{String.fromCharCode(65 + userChoice)}</span></span>}
                                </div>
-                            )}
-                         </div>
+                             )}
+                          </div>
                       </div>
 
                       {/* Expanded Details */}

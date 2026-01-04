@@ -408,13 +408,25 @@ export default function StudentLayout({ children }) {
 
               {isProfileOpen && (
                 <div className="absolute right-0 mt-4 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2 z-50">
-                  <div className="p-4 border-b border-slate-100 md:hidden">
-                    <p className="text-sm font-bold text-slate-800">{user?.name}</p>
-                    <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-                  </div>
-                  <div className="p-2 border-b border-slate-50">
-                    <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 rounded-lg transition-colors"><User size={16} /> My Profile</button>
-                  </div>
+                  {/* User Profile Section */}
+<div className="p-4 border-b border-slate-100 flex items-center gap-3">
+  {/* Avatar Circle (Generates initial from name) */}
+  <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 border border-indigo-200">
+     <span className="text-indigo-700 font-bold text-lg">
+        {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+     </span>
+  </div>
+
+  {/* Text Info */}
+  <div className="min-w-0 flex-1">
+    <p className="text-sm font-bold text-slate-900 truncate">
+        {user?.name || 'Guest User'}
+    </p>
+    <p className="text-xs text-slate-500 truncate font-medium">
+        {user?.email || 'No email provided'}
+    </p>
+  </div>
+</div>
                   <div className="p-2">
                     <button onClick={() => { setIsProfileOpen(false); setIsLogoutModalOpen(true); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium">
                       <LogOut size={16} /> Sign Out

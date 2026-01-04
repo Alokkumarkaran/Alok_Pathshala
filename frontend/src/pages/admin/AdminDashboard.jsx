@@ -102,49 +102,80 @@ export default function AdminDashboard() {
   const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } }};
   const itemVariants = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 }};
 
+  // Place this helper constant outside your component or inside the render function
+const today = new Date().toLocaleDateString('en-US', { 
+  weekday: 'long', 
+  year: 'numeric', 
+  month: 'long', 
+  day: 'numeric' 
+});
+
   return (
     <AdminLayout>
       <motion.div 
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 bg-gray-50/50 min-h-screen"
+        className="max-w-7xl mx-auto px-2 sm:px-6 py-2 space-y-4 bg-gray-50/50 min-h-screen"
       >
         
-        {/* ================= HEADER & CONTROLS ================= */}
-        <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-gray-200">
-          <div>
-            <h1 className="text-4xl font-black text-gray-900 tracking-tight">Dashboard</h1>
-            <p className="text-gray-500 mt-2 font-medium">Overview of assessment performance and student activity.</p>
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-3">
-             {/* Time Filter */}
-             <div className="bg-white border border-gray-200 rounded-lg p-1 flex shadow-sm">
-                {['all', 'month', 'week'].map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTimeRange(t)}
-                    className={`px-3 py-1.5 text-xs font-bold uppercase rounded-md transition-all ${
-                      timeRange === t ? 'bg-indigo-100 text-indigo-700 shadow-sm' : 'text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    {t === 'all' ? 'All Time' : `This ${t}`}
-                  </button>
-                ))}
-             </div>
+       {/* ================= HEADER & CONTROLS ================= */}
+<motion.div variants={itemVariants} className="p-6 md:p-8 rounded-2xl bg-gradient-to-r from-indigo-50/50 via-white to-white border border-indigo-100 mb-8 shadow-sm">
+  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    
+    {/* Text Section */}
+    <div>
+      {/* Dynamic Date Display */}
+      <div className="flex items-center gap-2 mb-2">
+        <div className="p-1.5 bg-indigo-100 rounded-md text-indigo-600">
+           <Calendar size={14} strokeWidth={2.5} />
+        </div>
+        <span className="text-xs font-bold text-indigo-900 uppercase tracking-widest">
+          {today}
+        </span>
+      </div>
 
-             <button onClick={handleRefresh} className={`p-2.5 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-indigo-600 transition shadow-sm ${isRefreshing ? 'animate-spin' : ''}`}>
-               <RefreshCcw size={18} />
+      <h1 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-indigo-900 tracking-tight">
+        Dashboard Overview
+      </h1>
+      <p className="text-gray-600 mt-2 font-medium">
+        Welcome back. Here Overview of assessment performance and student activity
+      </p>
+    </div>
+    
+    {/* Controls Section */}
+    <div className="flex flex-col sm:flex-row gap-3">
+        {/* Filter Group */}
+        <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+          {['all', 'month', 'week'].map((t) => (
+             <button
+               key={t}
+               onClick={() => setTimeRange(t)}
+               className={`px-3 py-2 text-xs font-bold uppercase tracking-wide rounded-md transition-colors ${
+                 timeRange === t ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-50'
+               }`}
+             >
+               {t === 'all' ? 'All' : t}
              </button>
+           ))}
+        </div>
 
-             <Link to="/admin/create-test">
-               <button className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 font-bold text-sm">
-                 <Plus size={18} /> New Exam
-               </button>
-             </Link>
-          </div>
-        </motion.div>
+        {/* Action Group */}
+        <div className="flex gap-2">
+            <button onClick={handleRefresh} className={`px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:border-indigo-300 transition-colors shadow-sm font-semibold flex items-center gap-2 ${isRefreshing ? 'opacity-70' : ''}`}>
+                <RefreshCcw size={16} className={isRefreshing ? 'animate-spin' : ''}/>
+                <span className="hidden sm:inline">Sync</span>
+            </button>
+
+            <Link to="/admin/create-test">
+                <button className="flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md font-bold text-sm h-full">
+                    <Plus size={18} /> Create
+                </button>
+            </Link>
+        </div>
+    </div>
+  </div>
+</motion.div>
 
         {/* ================= STATS CARDS ================= */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">

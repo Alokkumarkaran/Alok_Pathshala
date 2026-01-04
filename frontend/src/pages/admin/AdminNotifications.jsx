@@ -75,30 +75,52 @@ export default function AdminNotifications() {
 
   return (
     <AdminLayout>
-      <div className="max-w-5xl mx-auto px-4 py-8 min-h-screen">
+      <div className="max-w-5xl mx-auto px-2 py- min-h-screen">
         
         {/* === HEADER SECTION === */}
-        <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
-          <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-              Notification Center
-              {unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg shadow-red-200 animate-pulse">
-                  {unreadCount} New
-                </span>
-              )}
-            </h1>
-            <p className="text-gray-500 mt-2 font-medium">Stay updated with the latest system activities.</p>
-          </div>
-          
-          <button 
-            onClick={handleMarkAllRead}
-            disabled={unreadCount === 0}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all ${unreadCount === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white border border-gray-200 text-indigo-600 hover:bg-indigo-50 shadow-sm'}`}
-          >
-            <CheckCheck size={18} /> Mark all read
-          </button>
-        </div>
+<div className="bg-gradient-to-r from-indigo-50/80 via-white to-white border border-indigo-100 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
+  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    
+    {/* Left Side: Title & Badge */}
+    <div>
+      <div className="flex items-center gap-3">
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+          Notification Center
+        </h1>
+        
+        {/* Animated Badge */}
+        {unreadCount > 0 ? (
+          <span className="flex items-center gap-1.5 bg-red-500 text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-md shadow-red-200 animate-pulse">
+            <BellRing size={12} fill="currentColor" />
+            {unreadCount} NEW
+          </span>
+        ) : (
+          <span className="flex items-center gap-1.5 bg-gray-100 text-gray-500 text-xs font-bold px-3 py-1 rounded-full border border-gray-200">
+            <Bell size={12} />
+            All Caught Up
+          </span>
+        )}
+      </div>
+      <p className="text-gray-500 mt-2 font-medium">
+        Stay updated with the latest system activities and alerts.
+      </p>
+    </div>
+    
+    {/* Right Side: Action Button */}
+    <button 
+      onClick={handleMarkAllRead}
+      disabled={unreadCount === 0}
+      className={`group flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-200 ${
+        unreadCount === 0 
+          ? 'bg-gray-50 text-gray-400 cursor-not-allowed border border-gray-100' 
+          : 'bg-white border border-gray-200 text-indigo-600 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 shadow-sm hover:shadow-indigo-200 hover:-translate-y-0.5'
+      }`}
+    >
+      <CheckCheck size={18} className={unreadCount > 0 ? "group-hover:text-white" : ""} /> 
+      <span>Mark all as read</span>
+    </button>
+  </div>
+</div>
 
         {/* === TOOLBAR === */}
         <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-3 sticky top-4 z-20">

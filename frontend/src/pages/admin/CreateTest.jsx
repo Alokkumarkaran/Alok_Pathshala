@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import AdminLayout from "../../layouts/AdminLayout";
+import { PenTool, Sparkles } from "lucide-react";
 
 export default function CreateTest() {
   const navigate = useNavigate();
@@ -54,10 +55,33 @@ export default function CreateTest() {
       <div className="max-w-3xl mx-auto">
         
         {/* Header Section */}
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Create New Assessment</h1>
-          <p className="text-gray-500 mt-2 text-sm md:text-base">Configure the details for a new student examination.</p>
-        </div>
+<div className="bg-gradient-to-r from-indigo-50 via-white to-white border border-indigo-100 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
+  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    
+    {/* Title & Icon */}
+    <div className="flex items-start gap-4">
+      <div className="p-3 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200">
+        <PenTool size={24} strokeWidth={2} />
+      </div>
+      <div>
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+          Create Assessment
+          <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full border border-indigo-200 uppercase tracking-wide">
+            Draft Mode
+          </span>
+        </h1>
+        <p className="text-gray-500 mt-2 font-medium text-lg">
+          Configure exam details, questions, and settings.
+        </p>
+      </div>
+    </div>
+
+    {/* Optional Decorative Icon */}
+    <div className="hidden md:block text-indigo-200">
+        <Sparkles size={48} strokeWidth={1} />
+    </div>
+  </div>
+</div>
 
         {/* Card Container */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden relative">

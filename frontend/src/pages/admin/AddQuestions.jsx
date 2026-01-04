@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import AdminLayout from "../../layouts/AdminLayout";
+import { FileQuestion, Layers } from "lucide-react";
 
 export default function AddQuestions() {
   const [tests, setTests] = useState([]);
@@ -99,10 +100,30 @@ export default function AddQuestions() {
       <div className="max-w-4xl mx-auto">
         
         {/* Header Section */}
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Add Questions</h1>
-          <p className="text-gray-500 mt-2 text-sm md:text-base">Populate your assessments with questions and answers.</p>
+<div className="bg-gradient-to-r from-indigo-50 via-white to-white border border-indigo-100 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
+  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    
+    {/* Title & Icon */}
+    <div className="flex items-start gap-4">
+      <div className="p-3 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200">
+        <FileQuestion size={24} strokeWidth={2} />
+      </div>
+      <div>
+        <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+            Add Questions
+            </h1>
+            <span className="hidden sm:inline-flex items-center gap-1 bg-white border border-gray-200 text-gray-500 text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
+                <Layers size={12} /> Editor Mode
+            </span>
         </div>
+        <p className="text-gray-500 mt-2 font-medium text-lg">
+          Build your question bank. Add multiple choice, text, or true/false items.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
 
         {/* Card Container */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden relative">

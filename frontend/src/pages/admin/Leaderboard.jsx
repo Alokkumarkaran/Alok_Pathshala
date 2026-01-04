@@ -53,37 +53,60 @@ export default function Leaderboard() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8 min-h-screen space-y-6 md:space-y-8 bg-gray-50/30">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 py-2 md:py-8 min-h-screen space-y-4 md:space-y-8 bg-gray-50/30">
         
-        {/* === HEADER === */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-6">
-          <div className="text-center lg:text-left">
-            <h1 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight flex items-center justify-center lg:justify-start gap-2 md:gap-3">
-              <span className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white p-2 md:p-3 rounded-xl md:rounded-2xl shadow-lg shadow-orange-500/30">
-                <Trophy className="w-6 h-6 md:w-8 md:h-8" strokeWidth={2.5} />
-              </span>
-              Exam Leaderboard
-            </h1>
-            <p className="text-sm md:text-base text-gray-500 font-medium mt-2">
-              Top performers & ranking stats.
-            </p>
-          </div>
+       
+{/* === HEADER === */}
+<div className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-white border border-orange-100 rounded-3xl p-6 lg:p-8 mb-10 shadow-sm">
+  
+  {/* Decorative background blob */}
+  <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-orange-100/50 blur-3xl pointer-events-none"></div>
 
-          {/* Mobile-Friendly Dropdown */}
-          <div className="relative w-full lg:w-80 group z-30">
-            <select
-              value={selectedTest}
-              onChange={(e) => loadLeaderboard(e.target.value)}
-              className="w-full appearance-none bg-white border border-gray-200 text-gray-700 py-3 md:py-4 pl-4 pr-10 rounded-xl md:rounded-2xl text-sm md:text-base font-bold shadow-sm focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all cursor-pointer"
-            >
-              <option value="">Select an Assessment...</option>
-              {tests.map((t) => (
-                <option key={t._id} value={t._id}>{t.title}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none w-5 h-5" />
-          </div>
+  <div className="relative flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+    
+    {/* Title Section */}
+    <div className="flex items-start gap-4">
+      <div className="hidden md:flex shrink-0 p-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl shadow-lg shadow-orange-200 text-white transform rotate-3">
+        <Trophy size={32} strokeWidth={2.5} />
+      </div>
+      
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+             <Medal size={16} className="text-orange-500" />
+             <span className="text-xs font-bold text-orange-600 uppercase tracking-widest">Hall of Fame</span>
         </div>
+        <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
+          Exam Leaderboard
+        </h1>
+        <p className="text-gray-500 mt-2 font-medium max-w-md text-lg">
+          Celebrate top performers. Analyze ranking distributions and scores.
+        </p>
+      </div>
+    </div>
+
+    {/* Controls Section */}
+    <div className="w-full lg:w-96">
+      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-2 ml-1">
+        Select Assessment
+      </label>
+      <div className="relative group">
+        <select
+          value={selectedTest}
+          onChange={(e) => loadLeaderboard(e.target.value)}
+          className="w-full appearance-none bg-white border-2 border-orange-100 hover:border-orange-300 text-gray-900 py-4 pl-5 pr-12 rounded-2xl text-base font-bold shadow-sm focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all cursor-pointer outline-none"
+        >
+          <option value="">-- Choose an Exam --</option>
+          {tests.map((t) => (
+            <option key={t._id} value={t._id}>{t.title}</option>
+          ))}
+        </select>
+        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-orange-500 bg-orange-50 p-1 rounded-md">
+            <ChevronDown size={20} strokeWidth={3} />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
         {/* === MAIN CONTENT === */}
         <AnimatePresence mode="wait">

@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Notification from "../models/Notification.js"; // 👈 IMPORT THIS
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
+import Result from "../models/Result.js";
 
 const router = express.Router();
 
@@ -96,9 +97,11 @@ router.get("/students", async (req, res) => {
   }
 });
 
+// ✅ UPDATED DELETE ROUTE (Cascading Delete)
 router.delete("/user/:id", protect, adminOnly, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const userId = req.params.id;
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -108,12 +111,19 @@ router.delete("/user/:id", protect, adminOnly, async (req, res) => {
       return res.status(400).json({ message: "You cannot delete your own admin account." });
     }
 
-    await User.findByIdAndDelete(req.params.id);
-    res.json({ message: "User deleted successfully" });
+    // 👇 2. DELETE ALL RESULTS ASSOCIATED WITH THIS STUDENT FIRST
+    await Result.deleteMany({ studentId: userId });
+
+    // 👇 3. THEN DELETE THE USER
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: "User and all associated exam data deleted successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
 });
+
+
 
 export default router;

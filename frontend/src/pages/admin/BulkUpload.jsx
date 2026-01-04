@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import AdminLayout from "../../layouts/AdminLayout";
+import { FileJson, ClipboardCopy } from "lucide-react";
 
 export default function BulkUpload() {
   const [tests, setTests] = useState([]);
@@ -111,18 +112,34 @@ export default function BulkUpload() {
       <div className="max-w-4xl mx-auto">
         
         {/* Header */}
-        <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Bulk Upload Questions</h1>
-            <p className="text-gray-500 mt-2 text-sm">Import multiple questions at once using JSON format.</p>
-          </div>
-          <button 
-            onClick={pasteSample}
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-800 underline decoration-indigo-200 hover:decoration-indigo-600 underline-offset-4 transition-all"
-          >
-            Load Sample JSON
-          </button>
-        </div>
+<div className="bg-gradient-to-r from-indigo-50 via-white to-white border border-indigo-100 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
+  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    
+    {/* Title & Icon */}
+    <div className="flex items-start gap-4">
+      <div className="p-3 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200">
+        <FileJson size={24} strokeWidth={2} />
+      </div>
+      <div>
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+          Bulk Import
+        </h1>
+        <p className="text-gray-500 mt-2 font-medium text-lg">
+          Upload multiple questions via JSON file.
+        </p>
+      </div>
+    </div>
+
+    {/* Improved Action Button */}
+    <button 
+      onClick={pasteSample}
+      className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-indigo-600 font-bold text-sm rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all shadow-sm active:scale-95"
+    >
+      <ClipboardCopy size={16} />
+      <span>Load Sample Data</span>
+    </button>
+  </div>
+</div>
 
         {/* Main Card */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden relative">
