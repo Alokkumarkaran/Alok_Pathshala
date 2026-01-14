@@ -17,7 +17,7 @@ import {
   BookOpen,
   AlertTriangle,
   Trash2,
-  CheckCheck, // <--- Add this
+  CheckCheck,
   Inbox
 } from "lucide-react";
 
@@ -37,20 +37,19 @@ export default function StudentLayout({ children }) {
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [pollErrorCount, setPollErrorCount] = useState(0); // Circuit breaker
 
-  // --- HELPER: Format Time ---
-  const timeAgo = (dateString) => {
+  // --- HELPER: Format Date Directly (e.g., 04 Jan 2025) ---
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
-    const now = new Date();
-    const seconds = Math.floor((now - date) / 1000);
     
-    if (seconds < 60) return "Just now";
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}d ago`;
-    return date.toLocaleDateString();
+    // Safety check for invalid dates
+    if (isNaN(date.getTime())) return "N/A";
+
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
   };
 
   // --- LOGIC: Fetch & Process Notifications ---
@@ -61,7 +60,6 @@ export default function StudentLayout({ children }) {
     try {
       if (notifications.length === 0) setLoadingNotifs(true);
       
-      // ✅ FIX: Changed from "/test/available" to "/test/student/all"
       const res = await api.get("/test/student/all");
       
       // Reset error count on success
@@ -83,7 +81,7 @@ export default function StudentLayout({ children }) {
           title: "New Assessment Added",
           desc: test.title,
           rawTime: test.createdAt,
-          time: timeAgo(test.createdAt),
+          time: formatDate(test.createdAt), // <--- Uses the new Date helper
           read: readIds.includes(test._id)
         }));
 
@@ -189,16 +187,24 @@ export default function StudentLayout({ children }) {
       )}
 
       <aside className={`fixed inset-y-0 left-0 z-50 w-[280px] bg-white border-r border-slate-200 shadow-2xl lg:shadow-none transform transition-transform duration-300 lg:translate-x-0 lg:static flex flex-col ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="h-20 flex items-center px-8 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold shadow-md shadow-indigo-200">A</div>
-            <div>
-              <h1 className="text-lg font-bold text-slate-800 leading-tight">Alok Pathshala</h1>
-              <p className="text-[11px] font-semibold text-indigo-500 uppercase tracking-widest">Student Portal</p>
-            </div>
-          </div>
-          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden ml-auto text-slate-400"><X size={24} /></button>
-        </div>
+       <div className="h-20 flex items-center justify-between px-6 lg:px-8 border-b border-slate-100 bg-white">
+  {/* Logo Container: Added nice spacing and interaction */}
+  <div className="flex items-center py-2">
+    <img 
+      src="/Alok_Pathshala_Logo2.png" 
+      alt="Alok Pathshala Logo" 
+      className="h-12 md:h-16 w-auto object-contain drop-shadow-sm hover:drop-shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer" 
+    />
+  </div>
+
+  {/* Close Button (Pushed to the right) */}
+  <button 
+    onClick={() => setIsSidebarOpen(false)} 
+    className="lg:hidden p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-full transition-colors"
+  >
+    <X size={24} />
+  </button>
+</div>
 
         <div className="flex-1 px-5 py-8 overflow-y-auto custom-scrollbar space-y-1">
           <p className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Main Menu</p>
@@ -409,24 +415,24 @@ export default function StudentLayout({ children }) {
               {isProfileOpen && (
                 <div className="absolute right-0 mt-4 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2 z-50">
                   {/* User Profile Section */}
-<div className="p-4 border-b border-slate-100 flex items-center gap-3">
-  {/* Avatar Circle (Generates initial from name) */}
-  <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 border border-indigo-200">
-     <span className="text-indigo-700 font-bold text-lg">
-        {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-     </span>
-  </div>
+                  <div className="p-4 border-b border-slate-100 flex items-center gap-3">
+                    {/* Avatar Circle (Generates initial from name) */}
+                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 border border-indigo-200">
+                       <span className="text-indigo-700 font-bold text-lg">
+                          {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                       </span>
+                    </div>
 
-  {/* Text Info */}
-  <div className="min-w-0 flex-1">
-    <p className="text-sm font-bold text-slate-900 truncate">
-        {user?.name || 'Guest User'}
-    </p>
-    <p className="text-xs text-slate-500 truncate font-medium">
-        {user?.email || 'No email provided'}
-    </p>
-  </div>
-</div>
+                    {/* Text Info */}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-slate-900 truncate">
+                          {user?.name || 'Guest User'}
+                      </p>
+                      <p className="text-xs text-slate-500 truncate font-medium">
+                          {user?.email || 'No email provided'}
+                      </p>
+                    </div>
+                  </div>
                   <div className="p-2">
                     <button onClick={() => { setIsProfileOpen(false); setIsLogoutModalOpen(true); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium">
                       <LogOut size={16} /> Sign Out
