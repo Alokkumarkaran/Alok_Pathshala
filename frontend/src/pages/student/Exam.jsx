@@ -323,42 +323,57 @@ export default function Exam() {
           </div>
 
           {/* Bottom Navigation Bar */}
-          <div className="bg-white border-t border-gray-200 p-3 lg:p-4 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-10">
-            
-            <div className="flex gap-3">
+<div className="bg-white border-t border-gray-200 p-3 lg:p-4 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-10">
+  
+  {/* MOBILE: This container is now on TOP (Save & Next / Back) 
+      DESKTOP: This container is on the RIGHT 
+  */}
+  <div className="flex w-full sm:w-auto gap-3 order-1 sm:order-2">
+    <button 
+      onClick={() => handleNavigation(Math.max(0, current - 1))}
+      disabled={current === 0}
+      className="flex-1 sm:flex-none px-4 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200 disabled:opacity-50 text-sm"
+    >
+      <ChevronLeft size={20} />
+    </button>
 
-              <button onClick={handleClearResponse} className="px-4 py-2 text-indigo-600 font-medium border border-indigo-600 rounded hover:bg-indigo-50 transition">Clear Response</button>
+    {isLastQuestion ? (
+      <button 
+        onClick={handleInitSubmit} 
+        className="flex-[2] sm:flex-none px-6 py-2.5 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 shadow-md shadow-green-200 flex items-center justify-center gap-2 text-sm"
+      >
+        Submit Test <CheckCircle size={18} />
+      </button>
+    ) : (
+      <button 
+        onClick={handleSaveAndNext} 
+        className="flex-[2] sm:flex-none px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 shadow-md shadow-indigo-200 flex items-center justify-center gap-2 text-sm"
+      >
+        Save & Next <ChevronRight size={18} />
+      </button>
+    )}
+  </div>
 
-              <button onClick={handleMarkForReview} className="px-4 py-2 bg-purple-600 text-white font-medium rounded hover:bg-purple-700 transition">Mark for Review</button>
+  {/* MOBILE: This container is now at BOTTOM (Clear / Review) 
+      DESKTOP: This container is on the LEFT 
+  */}
+  <div className="flex w-full sm:w-auto gap-3 order-2 sm:order-1">
+    <button 
+      onClick={handleClearResponse} 
+      className="flex-1 sm:flex-none px-4 py-2 text-indigo-600 font-medium border border-indigo-600 rounded hover:bg-indigo-50 transition text-sm"
+    >
+      Clear
+    </button>
 
-            </div>
-            
-            <div className="flex w-full sm:w-auto gap-3">
-              <button 
-                onClick={() => handleNavigation(Math.max(0, current - 1))}
-                disabled={current === 0}
-                className="flex-1 sm:flex-none px-4 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200 disabled:opacity-50 text-sm"
-              >
-                <ChevronLeft size={20} />
-              </button>
-
-              {isLastQuestion ? (
-                <button 
-                  onClick={handleInitSubmit} 
-                  className="flex-[2] sm:flex-none px-6 py-2.5 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 shadow-md shadow-green-200 flex items-center justify-center gap-2 text-sm"
-                >
-                  Submit Test <CheckCircle size={18} />
-                </button>
-              ) : (
-                <button 
-                  onClick={handleSaveAndNext} 
-                  className="flex-[2] sm:flex-none px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 shadow-md shadow-indigo-200 flex items-center justify-center gap-2 text-sm"
-                >
-                  Save & Next <ChevronRight size={18} />
-                </button>
-              )}
-            </div>
-          </div>
+    <button 
+      onClick={handleMarkForReview} 
+      className="flex-1 sm:flex-none px-4 py-2 bg-purple-600 text-white font-medium rounded hover:bg-purple-700 transition text-sm"
+    >
+      Mark for Review
+    </button>
+  </div>
+  
+</div>
         </main>
 
         {/* ================= RESPONSIVE SIDEBAR DRAWER ================= */}
