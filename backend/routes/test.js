@@ -9,7 +9,11 @@ const router = express.Router();
 // ✅ ADMIN: Create Test
 router.post("/create", protect, adminOnly, async (req, res) => {
   try {
-      const test = await Test.create(req.body);
+      const testData = { ...req.body };
+      if (!testData.folderId || testData.folderId === "" || testData.folderId === "null") {
+        delete testData.folderId;
+      }
+      const test = await Test.create(testData);
 
       // 👇 NOTIFICATION TRIGGER (Added here)
       try {
@@ -41,7 +45,7 @@ router.post("/add-question", protect, adminOnly, async (req, res) => {
 });
 
 router.get("/admin/all", protect, adminOnly, async (req, res) => {
-  const tests = await Test.find().sort({ createdAt: -1 });
+  const tests = await Test.find().populate("folderId", "title categoryIcon").sort({ createdAt: -1 });
   res.json(tests);
 });
 
@@ -59,7 +63,10 @@ router.delete("/:id", protect, adminOnly, async (req, res) => {
     // Doing this first ensures we don't leave "orphan" questions if the process fails later
     await Question.deleteMany({ testId: testId });
 
-    // 3. Finally, delete the test itself
+    // 3. Delete all student results associated with this testId
+    await Result.deleteMany({ testId: testId });
+
+    // 4. Finally, delete the test itself
     await Test.findByIdAndDelete(testId);
 
     // Optional: Add a Notification for deletion too

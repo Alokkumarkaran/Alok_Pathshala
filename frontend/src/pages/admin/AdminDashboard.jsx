@@ -167,6 +167,12 @@ const today = new Date().toLocaleDateString('en-US', {
                 <span className="hidden sm:inline">Sync</span>
             </button>
 
+            <Link to="/admin/folders">
+              <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition shadow-md font-bold text-sm h-full">
+                📁 Exam Folders
+              </button>
+            </Link>
+
             <Link to="/admin/create-test">
                 <button className="flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md font-bold text-sm h-full">
                     <Plus size={18} /> Create

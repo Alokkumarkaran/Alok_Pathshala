@@ -100,6 +100,40 @@ router.get("/results/:studentId", protect, async (req, res) => {
   res.json(results);
 });
 
+// ✅ STUDENT: Get Map of Attempted Tests for current student
+router.get("/student/attempts-map", protect, async (req, res) => {
+  try {
+    const studentId = req.user._id;
+    const results = await Result.find({ studentId }).sort({ createdAt: -1 });
+
+    const attemptsMap = {};
+    results.forEach((resItem) => {
+      const tId = resItem.testId.toString();
+      if (!attemptsMap[tId]) {
+        attemptsMap[tId] = {
+          attempted: true,
+          bestScore: resItem.score,
+          lastScore: resItem.score,
+          totalQuestions: resItem.totalQuestions,
+          attemptsCount: 1,
+          lastAttemptAt: resItem.createdAt,
+          lastResultId: resItem._id,
+        };
+      } else {
+        attemptsMap[tId].attemptsCount += 1;
+        if (resItem.score > attemptsMap[tId].bestScore) {
+          attemptsMap[tId].bestScore = resItem.score;
+        }
+      }
+    });
+
+    res.json(attemptsMap);
+  } catch (error) {
+    console.error("Fetch Student Attempts Map Error:", error);
+    res.status(500).json({ message: "Error fetching student attempt map" });
+  }
+});
+
 router.get("/admin/results", protect, adminOnly, async (req, res) => {
   const results = await Result.find()
     .populate("studentId", "name email")

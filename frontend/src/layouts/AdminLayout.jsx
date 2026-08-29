@@ -5,7 +5,7 @@ import api from "../api/axios";
 import { 
   LayoutDashboard, FilePlus, PlusCircle, UploadCloud, BarChart2, 
   Award, Settings, Users, LogOut, Menu, X, Search, Bell, 
-  ChevronDown, FileText, Trash2, AlertTriangle, UserPlus, ClipboardCheck, CheckCircle
+  ChevronDown, FileText, Trash2, AlertTriangle, UserPlus, ClipboardCheck, CheckCircle, Folder
 } from "lucide-react";
 
 export default function AdminLayout({ children }) {
@@ -178,6 +178,7 @@ export default function AdminLayout({ children }) {
 
           <p className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Test Management</p>
           <nav className="space-y-1">
+            <SidebarLink to="/admin/folders" label="Exam Folders" icon={<Folder size={20} />} />
             <SidebarLink to="/admin/create-test" label="Create New Test" icon={<FilePlus size={20} />} />
             <SidebarLink to="/admin/manage-tests" label="Manage Tests" icon={<Settings size={20} />} />
             <SidebarLink to="/admin/add-question" label="Add Questions" icon={<PlusCircle size={20} />} />

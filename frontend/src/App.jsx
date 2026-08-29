@@ -19,6 +19,8 @@ import ResultAnalysis from "./pages/student/ResultAnalysis";
 import SLeaderboard from "./pages/student/SLeaderboard";
 import AvailableTests from "./pages/student/AvailableTests"; // Import the new page
 import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminExamFolders from "./pages/admin/AdminExamFolders";
+import AdminFolderSets from "./pages/admin/AdminFolderSets";
 
 
 export default function App() {
@@ -45,6 +47,23 @@ export default function App() {
             element={
               <ProtectedRoute role="admin">
                 <AdminNotifications />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/folders"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminExamFolders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/folders/:folderId/sets"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminFolderSets />
               </ProtectedRoute>
             }
           />
